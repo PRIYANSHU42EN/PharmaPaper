@@ -196,10 +196,10 @@ export default function HeroCanvas() {
             
             if (mobile) {
               lod.addLevel(model, 0);
-              lod.addLevel(lowPolyBook, 1.5);
+              lod.addLevel(lowPolyBook, 15);
             } else {
               lod.addLevel(model, 0);
-              lod.addLevel(lowPolyBook, 6.0);
+              lod.addLevel(lowPolyBook, 50);
             }
 
             bookGroup.add(lod);
