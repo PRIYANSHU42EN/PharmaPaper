@@ -8,6 +8,7 @@ import { supabase, trackPdfView, trackPdfDownload, getSettings } from "../../lib
 import { useUser } from "@clerk/nextjs";
 import InlinePDFViewer from "../../components/InlinePDFViewer";
 import PaywallModal from "../../components/PaywallModal";
+import VideoCard from "../../components/video/VideoCard";
 
 // Helper to generate highly realistic PCI syllabus units and topics dynamically based on subject name
 function getSubjectUnits(subjectName: string) {
@@ -692,6 +693,7 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
   const [isLightMode, setIsLightMode] = useState(false);
 
   const [dbMaterials, setDbMaterials] = useState<any[]>([]);
+  const [dbVideos, setDbVideos] = useState<any[]>([]);
   const [loadingDb, setLoadingDb] = useState(true);
   const [activePdfUrl, setActivePdfUrl] = useState<string | null>(null);
   const [activePdfTitle, setActivePdfTitle] = useState<string>("");
@@ -748,7 +750,7 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
     }
   };
 
-  // Fetch materials from Supabase
+  // Fetch materials and videos from Supabase
   useEffect(() => {
     async function fetchMaterials() {
       try {
@@ -777,6 +779,24 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
         });
 
         setDbMaterials(filtered);
+
+        // Fetch videos matching the subject
+        const { data: videosData, error: videosError } = await supabase
+          .from("videos")
+          .select(`
+            *,
+            lecturer:lecturers (
+              id,
+              name,
+              avatar_url
+            )
+          `)
+          .eq("subject", subjectName)
+          .eq("is_published", true);
+        
+        if (!videosError && videosData) {
+          setDbVideos(videosData);
+        }
       } catch (err) {
         console.error("Error fetching study materials from Supabase:", err);
       } finally {
@@ -785,6 +805,36 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
     }
     fetchMaterials();
   }, [subjectName, semId, typeId]);
+
+  // GSAP ScrollTrigger for Video cards inside units
+  useEffect(() => {
+    if (dbVideos.length === 0) return;
+    if (typeof window !== "undefined") {
+      const { gsap } = require("gsap");
+      const { ScrollTrigger } = require("gsap/ScrollTrigger");
+      gsap.registerPlugin(ScrollTrigger);
+
+      gsap.fromTo(
+        ".subject-video-card-animate",
+        {
+          opacity: 0,
+          y: 30,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#units-list-container",
+            start: "top 80%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+    }
+  }, [dbVideos]);
 
   // Helper to filter materials for a specific unit
   const getUnitMaterials = (unitNum: string) => {
@@ -802,6 +852,18 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
       const itemTitle = (item.title || "").toLowerCase();
       return itemTitle.includes(targetUnit) || (targetNumStr && itemTitle.includes(targetNumStr));
     });
+  };
+
+  const getUnitVideos = (unitNum: string) => {
+    const romanToNumVal: Record<string, number> = {
+      "Unit I": 1,
+      "Unit II": 2,
+      "Unit III": 3,
+      "Unit IV": 4,
+      "Unit V": 5,
+    };
+    const targetUnitInt = romanToNumVal[unitNum] || 1;
+    return dbVideos.filter(v => v.unit === targetUnitInt);
   };
 
   const getUnitDbPdf = (unitNum: string) => {
@@ -1005,7 +1067,7 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
           </aside>
 
           {/* Right Column: Unit-by-Unit Vertical List */}
-          <section className="lg:col-span-9 flex flex-col gap-12">
+          <section id="units-list-container" className="lg:col-span-9 flex flex-col gap-12">
             {/* Supabase Repository Materials Section */}
             {dbMaterials.length > 0 && (
               <div className="p-6 glass-panel border border-brand/30 bg-brand/[0.01] rounded-2xl flex flex-col gap-4">
@@ -1150,6 +1212,25 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                     </div>
                   </div>
                 </div>
+
+                {/* Native Video Lectures */}
+                {getUnitVideos(unit.num).length > 0 && (
+                  <div className="border-t border-brand-border/20 pt-4">
+                    <h4 className="text-[10px] text-brand-cream/40 uppercase tracking-widest font-semibold mb-3">
+                      Video Lectures ({getUnitVideos(unit.num).length})
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {getUnitVideos(unit.num).map((video) => (
+                        <div key={video.id} className="subject-video-card-animate">
+                          <VideoCard
+                            video={video}
+                            hasVideoAccess={!!isPremium}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Study resources button links */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">

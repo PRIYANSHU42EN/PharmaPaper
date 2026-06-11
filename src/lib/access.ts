@@ -19,10 +19,9 @@ export interface AccessResult {
   expiresAt?: string;
 }
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
 export async function getUserAccess(userId: string | null | undefined): Promise<AccessResult> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
   // 1. Not logged in
   if (!userId) {
     return {

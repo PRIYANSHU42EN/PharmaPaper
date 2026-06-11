@@ -20,6 +20,8 @@ const ALLOWED_HOSTS = [
   "drive.usercontent.google.com",
   "www.w3.org",
   "pcvvdcbivqzqrwrwowlp.supabase.co",
+  "localhost",
+  "127.0.0.1",
 ];
 
 function toDirectGoogleDriveUrl(url: string): string {
@@ -107,11 +109,13 @@ export async function GET(req: NextRequest) {
     console.error("Failed to log pdf_view event:", err);
   }
 
-
-
   let parsedUrl: URL;
   try {
-    parsedUrl = new URL(urlParam);
+    if (urlParam.startsWith("/")) {
+      parsedUrl = new URL(urlParam, req.nextUrl.origin);
+    } else {
+      parsedUrl = new URL(urlParam);
+    }
   } catch {
     return NextResponse.json(
       { error: "Invalid URL format" },
@@ -119,7 +123,11 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (parsedUrl.protocol !== "https:") {
+  if (
+    parsedUrl.protocol !== "https:" &&
+    parsedUrl.hostname !== "localhost" &&
+    parsedUrl.hostname !== "127.0.0.1"
+  ) {
     return NextResponse.json(
       { error: "Only HTTPS URLs are allowed" },
       { status: 400 }
@@ -135,7 +143,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  let fetchUrl = urlParam;
+  let fetchUrl = parsedUrl.toString();
   if (
     parsedUrl.hostname === "drive.google.com" &&
     urlParam.includes("/file/d/")

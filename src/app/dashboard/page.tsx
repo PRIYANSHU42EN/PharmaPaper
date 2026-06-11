@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import SubscribeButton from "@/components/video/SubscribeButton";
 
 // ── Types ──────────────────────────────────────────────────────
 interface TrialStatus {
@@ -40,9 +41,12 @@ function fmt(dateStr: string) {
 function planLabel(type: string) {
   const map: Record<string, string> = {
     premium_monthly: "Monthly Plan",
+    premium_yearly:  "Yearly Vault",
     premium_onetime: "Yearly Plan",
-    trial_free: "Free Trial",
-    trial_card: "Card Trial",
+    video_pass:      "Video Pass",
+    video_monthly:   "Video Pass (Monthly)",
+    trial_free:      "Free Trial",
+    trial_card:      "Card Trial",
   };
   return map[type] ?? type;
 }
@@ -52,17 +56,22 @@ export default function Dashboard() {
   const [trial, setTrial] = useState<TrialStatus>({ isTrial: false, isPremium: false });
   const [referral, setReferral] = useState<Referral>({ referral_code: "", total_referrals: 0, total_days_earned: 0 });
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [videoStats, setVideoStats] = useState<{ completedCount: number; subscriptions: any[] }>({
+    completedCount: 0,
+    subscriptions: [],
+  });
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [tab, setTab] = useState<"overview" | "referrals" | "billing">("overview");
+  const [tab, setTab] = useState<"overview" | "referrals" | "billing" | "completion" | "subscriptions">("overview");
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [trialRes, referralRes, paymentsRes] = await Promise.all([
+        const [trialRes, referralRes, paymentsRes, videoStatsRes] = await Promise.all([
           fetch("/api/trial/status"),
           fetch("/api/referral/generate"),
           fetch("/api/payments/history"),
+          fetch("/api/user/video-stats"),
         ]);
 
         if (trialRes.ok) {
@@ -78,6 +87,15 @@ export default function Dashboard() {
         if (paymentsRes.ok) {
           const paymentsData = await paymentsRes.json();
           setPayments(paymentsData);
+        }
+        if (videoStatsRes.ok) {
+          const statsData = await videoStatsRes.json();
+          if (statsData.success) {
+            setVideoStats({
+              completedCount: statsData.completedCount,
+              subscriptions: statsData.subscriptions || [],
+            });
+          }
         }
       } catch (err) {
         console.error("Error loading dashboard data:", err);
@@ -321,10 +339,16 @@ export default function Dashboard() {
         )}
 
         {/* ── Tabs ── */}
-        <div className="tabs fade-up delay-1">
-          {(['overview', 'referrals', 'billing'] as const).map(t => (
-            <button key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>
-              {t === 'overview' ? '📊 Overview' : t === 'referrals' ? '🔗 Referrals' : '💳 Billing'}
+        <div className="tabs fade-up delay-1 flex flex-wrap gap-2">
+          {([
+            { id: "overview", label: "📊 Overview" },
+            { id: "completion", label: "📈 Completion Stats" },
+            { id: "subscriptions", label: "🔔 Subscriptions" },
+            { id: "referrals", label: "🔗 Referrals" },
+            { id: "billing", label: "💳 Billing" },
+          ] as const).map(t => (
+            <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+              {t.label}
             </button>
           ))}
         </div>
@@ -560,26 +584,26 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Plan options */}
+            {/* Plan options — prices match /pricing page */}
             <div className="grid-2 fade-up delay-2">
               <div className="card" style={{ borderColor: 'rgba(5,130,202,.2)' }}>
                 <div className="card-label">Monthly</div>
-                <div className="card-value">₹99</div>
-                <div className="card-sub">per month</div>
+                <div className="card-value">₹199</div>
+                <div className="card-sub">per month · Full Access</div>
                 <div className="divider" />
-                <Link href="/upgrade" className="btn btn-ghost btn-full" style={{ marginTop: '.3rem' }}>
+                <Link href="/pricing" className="btn btn-ghost btn-full" style={{ marginTop: '.3rem' }}>
                   Select Plan
                 </Link>
               </div>
               <div className="card" style={{ borderColor: 'rgba(5,130,202,.4)', background: 'linear-gradient(135deg, rgba(5,130,202,.08), rgba(56,189,248,.02))' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div className="card-label">Yearly</div>
-                  <span style={{ background: 'var(--indigo)', color: '#000', fontSize: '.65rem', fontWeight: 700, padding: '.2rem .6rem', borderRadius: 99, fontFamily: 'Syne' }}>SAVE ₹689</span>
+                  <div className="card-label">Yearly Vault</div>
+                  <span style={{ background: 'var(--indigo)', color: '#000', fontSize: '.65rem', fontWeight: 700, padding: '.2rem .6rem', borderRadius: 99, fontFamily: 'Syne' }}>SAVE 58%</span>
                 </div>
-                <div className="card-value">₹499</div>
-                <div className="card-sub">per year</div>
+                <div className="card-value">₹999</div>
+                <div className="card-sub">per year · Full Access</div>
                 <div className="divider" />
-                <Link href="/upgrade" className="btn btn-primary btn-full" style={{ marginTop: '.3rem' }}>
+                <Link href="/pricing" className="btn btn-primary btn-full" style={{ marginTop: '.3rem' }}>
                   Best Value
                 </Link>
               </div>
@@ -627,12 +651,133 @@ export default function Dashboard() {
               <p style={{ fontSize: '.88rem', color: 'var(--muted)' }}>
                 Payment issue or need a refund?
               </p>
-              <a href="mailto:smashgaming5488@gmail.com"
+              <a href="mailto:support@pharmapaper.in"
                 style={{ color: 'var(--indigo-l)', fontSize: '.88rem', fontWeight: 600, display: 'block', marginTop: '.5rem' }}>
-                smashgaming5488@gmail.com →
+                support@pharmapaper.in →
               </a>
             </div>
           </>
+        )}
+
+        {/* ════════════════════════════════
+            TAB: COMPLETION STATS
+        ════════════════════════════════ */}
+        {tab === 'completion' && (
+          <div className="flex flex-col gap-6 fade-up delay-1">
+            <div className="trial-card">
+              <div className="trial-header">
+                <div>
+                  <div className="card-label">Learning Progress</div>
+                  <div className="trial-title">Lecture Video Completion</div>
+                  <div className="card-sub" style={{ marginTop: '.3rem' }}>
+                    Track your B.Pharm / D.Pharm syllabus progress
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="days-badge">
+                    {videoStats.completedCount}
+                    <small>completed</small>
+                  </div>
+                </div>
+              </div>
+
+              <div className="divider" />
+
+              <div className="grid-2 animate-fadeIn" style={{ gap: '1.5rem', marginTop: '1rem' }}>
+                <div className="p-4 rounded-xl bg-brand-charcoal/40 border border-brand-border">
+                  <div className="card-label">Estimated Watch Time</div>
+                  <div className="text-xl font-bold font-mono text-brand mt-1">
+                    {Math.round(videoStats.completedCount * 45)} <span className="text-xs text-brand-cream/60">mins</span>
+                  </div>
+                  <p className="text-xs text-brand-cream/40 mt-1">Based on an average of 45 mins per lecture video</p>
+                </div>
+                
+                <div className="p-4 rounded-xl bg-brand-charcoal/40 border border-brand-border">
+                  <div className="card-label">Course Milestones</div>
+                  <div className="text-xl font-bold font-mono text-brand mt-1">
+                    {videoStats.completedCount > 0 ? Math.floor(videoStats.completedCount / 5) : 0} <span className="text-xs text-brand-cream/60">milestones</span>
+                  </div>
+                  <p className="text-xs text-brand-cream/40 mt-1">Every 5 completed lectures unlocks a milestone badge</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-label">Study Recommendations</div>
+              <p className="text-sm text-brand-cream/70 leading-relaxed mb-4">
+                Based on your active curriculum, we recommend completing the remaining units of your syllabus and attempting the mock assessments.
+              </p>
+              <div style={{ display: 'flex', gap: '.7rem' }}>
+                <Link href="/notes" className="btn btn-primary" style={{ flex: 1 }}>
+                  📚 Read Study Notes
+                </Link>
+                <Link href="/videos" className="btn btn-ghost" style={{ flex: 1 }}>
+                  🎥 Browse Video Vault
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════
+            TAB: SUBSCRIPTIONS
+        ════════════════════════════════ */}
+        {tab === 'subscriptions' && (
+          <div className="flex flex-col gap-6 fade-up delay-1">
+            <div className="card">
+              <div className="card-label">Your Subscribed Lecturers</div>
+              {videoStats.subscriptions.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-brand-cream/50 mb-4">You have not subscribed to any expert lecturers yet.</p>
+                  <Link href="/videos" className="btn btn-primary">
+                    Meet Expert Lecturers
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {videoStats.subscriptions.map((lecturer) => (
+                    <div
+                      key={lecturer.id}
+                      className="p-4 rounded-xl bg-brand-charcoal/40 border border-brand-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        {lecturer.avatar_url ? (
+                          <img
+                            src={lecturer.avatar_url}
+                            alt={lecturer.name}
+                            className="w-12 h-12 rounded-full object-cover border border-brand-border"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center font-mono text-brand font-bold text-lg">
+                            {lecturer.name.charAt(0)}
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="font-bold text-brand-cream text-sm">{lecturer.name}</h4>
+                          <p className="text-xs text-brand font-mono">{lecturer.specialization || "Pharmacy Expert"}</p>
+                          <p className="text-[10px] text-brand-cream/40 line-clamp-1 mt-0.5">{lecturer.bio}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 self-stretch sm:self-auto justify-end">
+                        <Link
+                          href={`/lecturer/${lecturer.id}`}
+                          className="px-4 py-2 border border-brand-border hover:border-brand/40 text-brand-cream/70 hover:text-brand rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors"
+                        >
+                          View Channel
+                        </Link>
+                        <SubscribeButton
+                          lecturerId={lecturer.id}
+                          initialIsSubscribed={true}
+                          initialSubscriberCount={lecturer.total_subscribers || 0}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
       </div>

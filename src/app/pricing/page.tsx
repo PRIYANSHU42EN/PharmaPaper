@@ -169,10 +169,15 @@ export default function PricingPage() {
         };
       }
 
+      // Guard against Razorpay script not loaded (ad blockers, slow network)
+      if (typeof (window as any).Razorpay === 'undefined') {
+        throw new Error('Payment gateway unavailable. Please disable ad blockers and try again.');
+      }
+
       const rzp = new (window as any).Razorpay(options);
       rzp.on("payment.failed", function (response: any) {
         setPaymentStatus("failed");
-        setErrorMsg(response.error.description || "Payment failed");
+        setErrorMsg(response.error?.description || "Payment failed. Please try again.");
         setLoading(false);
       });
 

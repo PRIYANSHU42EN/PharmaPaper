@@ -7,7 +7,7 @@ import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
 import FloatingCard from "@/components/FloatingCard";
 import NavbarBadge from "@/components/NavbarBadge";
 import { SyllabusData } from "@/lib/db";
-import { getSettings } from "@/lib/supabase";
+import { getSettings, supabase } from "@/lib/supabase";
 import Footer from "@/components/Footer";
 import dynamic from "next/dynamic";
 
@@ -36,6 +36,10 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
 
   const [siteName, setSiteName] = useState("Pharma Paper");
   const [siteDesc, setSiteDesc] = useState("Your Complete Pharmacy Study Vault");
+  const [emailInput, setEmailInput] = useState("");
+  const [emailStatus, setEmailStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [emailError, setEmailError] = useState("");
+  const [lecturers, setLecturers] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -52,6 +56,50 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
     });
   }, []);
 
+  // Fetch Lecturers from Supabase
+  useEffect(() => {
+    async function fetchLecturers() {
+      const { data, error } = await supabase
+        .from("lecturers")
+        .select("*")
+        .limit(4);
+      if (!error && data) {
+        setLecturers(data);
+      }
+    }
+    fetchLecturers();
+  }, []);
+
+  // GSAP ScrollTrigger for Lecturer grid cards stagger animation
+  useEffect(() => {
+    if (lecturers.length === 0) return;
+    if (typeof window !== "undefined") {
+      const { gsap } = require("gsap");
+      const { ScrollTrigger } = require("gsap/ScrollTrigger");
+      gsap.registerPlugin(ScrollTrigger);
+
+      gsap.fromTo(
+        ".lecturer-card-animate",
+        {
+          opacity: 0,
+          y: 40,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.15,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#lecturers-section",
+            start: "top 80%",
+            toggleActions: "play none none none",
+          },
+        }
+      );
+    }
+  }, [lecturers]);
+
   const renderLogo = (name: string) => {
     const parts = name.split(" ");
     if (parts.length <= 1) {
@@ -65,8 +113,33 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
     );
   };
 
+  const handleEmailSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!emailInput.trim() || emailStatus === "loading") return;
+    setEmailStatus("loading");
+    setEmailError("");
+    try {
+      const res = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailInput.trim().toLowerCase() }),
+      });
+      if (res.ok) {
+        setEmailStatus("success");
+        setEmailInput("");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEmailError(data.error ?? "Something went wrong. Please try again.");
+        setEmailStatus("error");
+      }
+    } catch {
+      setEmailError("Network error. Please try again.");
+      setEmailStatus("error");
+    }
+  };
+
   return (
-    <div id="scroll-container" className="relative w-full min-h-[400vh] bg-brand-charcoal text-brand-cream selection:bg-brand selection:text-white">
+    <div id="scroll-container" className="relative w-full min-h-[500vh] bg-brand-charcoal text-brand-cream selection:bg-brand selection:text-white">
       {/* 3D WebGL Canvas Layer */}
       <HeroCanvas />
 
@@ -87,8 +160,9 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide text-brand-cream/70">
           <a href="#notes" className="hover:text-brand transition-colors duration-200">Semester Notes</a>
           <a href="/pyq" className="hover:text-brand transition-colors duration-200">Question Papers</a>
+          <a href="/videos" className="hover:text-brand transition-colors duration-200">Video Lectures</a>
           <a href="#vault" className="hover:text-brand transition-colors duration-200">Study Vault</a>
-          <a href="/upgrade" className="text-brand hover:text-brand/80 font-semibold transition-colors duration-200">Go Premium</a>
+          <a href="/pricing" className="text-brand hover:text-brand/80 font-semibold transition-colors duration-200">Go Premium</a>
           <a href="/notes" className="hover:text-brand transition-colors duration-200 font-semibold">Workspace</a>
         </nav>
 
@@ -171,7 +245,82 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
         </div>
       </section>
 
-      {/* Section 2: Core Experience - Semester/Year Selector (100vh - 200vh) */}
+      {/* Section 2: Learn from Expert Lecturers (100vh - 200vh) */}
+      <section id="lecturers" className="relative w-full h-screen flex items-center justify-center max-w-7xl mx-auto px-6 z-20">
+        <div id="lecturers-section" className="w-full flex flex-col justify-center">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel border-brand-border text-brand text-[10px] uppercase font-bold tracking-widest mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand animate-ping" />
+                Expert Guided Video Modules
+              </div>
+              <h2 className="font-bebas text-4xl md:text-5xl text-brand-cream uppercase tracking-wide leading-none">
+                LEARN FROM <span className="text-brand">EXPERT LECTURERS</span>
+              </h2>
+              <p className="text-brand-cream/60 text-xs md:text-sm mt-3 max-w-2xl leading-relaxed">
+                Deep dive into pharmaceutical sciences with lessons curated by experienced professionals. High-yield video lectures aligned with the PCI syllabus.
+              </p>
+            </div>
+            <a href="/videos" className="px-6 py-2.5 rounded-full border border-brand-border hover:border-brand text-brand hover:text-white text-xs font-semibold uppercase tracking-wider transition-all duration-300">
+              View All Lectures →
+            </a>
+          </div>
+
+          {/* Lecturer Mini Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {lecturers.length === 0 ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="glass-panel border-brand-border p-6 rounded-2xl h-52 animate-pulse flex flex-col justify-between" />
+              ))
+            ) : (
+              lecturers.map((lecturer) => (
+                <a
+                  key={lecturer.id}
+                  href={`/lecturer/${lecturer.id}`}
+                  className="lecturer-card-animate group p-6 rounded-2xl border border-brand-border/40 hover:border-brand/40 glass-panel hover:bg-brand/5 transition-all duration-300 flex flex-col justify-between h-52 text-left"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Avatar */}
+                    {lecturer.avatar_url ? (
+                      <img
+                        src={lecturer.avatar_url}
+                        alt={lecturer.name}
+                        className="w-12 h-12 rounded-full object-cover border border-brand-border group-hover:border-brand transition-colors duration-300 shrink-0 bg-brand-charcoal"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-brand-gray border border-brand-border flex items-center justify-center font-mono font-bold text-brand uppercase shrink-0">
+                        {lecturer.name.charAt(0)}
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-sm font-bold text-white font-mono leading-none group-hover:text-brand transition-colors duration-300">
+                        {lecturer.name}
+                      </h3>
+                      {lecturer.specialization && (
+                        <span className="text-[8px] text-brand font-mono font-bold uppercase tracking-wider">
+                          {lecturer.specialization}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-[10px] text-brand-cream/50 line-clamp-3 leading-relaxed mt-3 flex-grow font-sans">
+                    {lecturer.bio || "Providing premium video lectures and resource materials to pharmacy students."}
+                  </p>
+
+                  <div className="border-t border-brand-border/20 pt-3 flex items-center justify-between text-[8px] font-mono uppercase tracking-widest text-brand-cream/40">
+                    <span>👥 {lecturer.total_subscribers || 0} Subscribed</span>
+                    <span className="text-brand font-bold group-hover:translate-x-1 transition-transform">Profile →</span>
+                  </div>
+                </a>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Section 3: Core Experience - Semester/Year Selector (200vh - 300vh) */}
       <section id="notes" className="relative w-full h-screen flex items-center justify-center max-w-7xl mx-auto px-6 z-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full items-center">
           {/* Left spacer column for the Three.js model flying in */}
@@ -317,17 +466,39 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
             Register your email to receive updates on the latest notes upload, PCI updates, and study resources.
           </p>
 
-          <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3 items-center justify-center" onSubmit={(e) => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              className="w-full px-5 py-3 rounded-full bg-brand-charcoal border border-brand-border text-brand-cream text-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all duration-300 placeholder:text-brand-cream/20"
-              required
-            />
-            <button className="w-full sm:w-auto shrink-0 px-8 py-3 rounded-full bg-brand hover:bg-brand/90 text-brand-charcoal font-semibold text-xs tracking-wider uppercase transition-all duration-300 transform active:scale-95 shadow-[0_4px_20px_rgba(5,130,202,0.3)]">
-              Get Access
-            </button>
-          </form>
+          {emailStatus === "success" ? (
+            <div className="max-w-md mx-auto flex items-center justify-center gap-2 text-green-400 text-sm font-semibold">
+              <span>✓</span> You're on the list! We'll be in touch soon.
+            </div>
+          ) : (
+            <form
+              id="newsletter-signup-form"
+              className="max-w-md mx-auto flex flex-col sm:flex-row gap-3 items-center justify-center"
+              onSubmit={handleEmailSignup}
+            >
+              <input
+                id="newsletter-email-input"
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="Enter your email address"
+                className="w-full px-5 py-3 rounded-full bg-brand-charcoal border border-brand-border text-brand-cream text-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all duration-300 placeholder:text-brand-cream/20"
+                required
+                aria-label="Email address for newsletter"
+                disabled={emailStatus === "loading"}
+              />
+              <button
+                type="submit"
+                disabled={emailStatus === "loading"}
+                className="w-full sm:w-auto shrink-0 px-8 py-3 rounded-full bg-brand hover:bg-brand/90 disabled:opacity-60 text-brand-charcoal font-semibold text-xs tracking-wider uppercase transition-all duration-300 transform active:scale-95 shadow-[0_4px_20px_rgba(5,130,202,0.3)]"
+              >
+                {emailStatus === "loading" ? "Saving..." : "Get Access"}
+              </button>
+            </form>
+          )}
+          {emailStatus === "error" && emailError && (
+            <p className="text-red-400 text-[11px] text-center mt-2 font-mono">{emailError}</p>
+          )}
 
           <div className="mt-8 flex justify-center items-center gap-6 text-[10px] text-brand-cream/40 uppercase tracking-widest font-semibold">
             <span>📚 Distraction-Free Portal</span>

@@ -3,7 +3,17 @@ import { Redis } from '@upstash/redis';
 
 // Lazy initialize Redis to avoid breaking compile-time checks or local development without Redis credentials
 let redis: Redis | null = null;
-let rateLimiters: any = null;
+
+interface RateLimiterMap {
+  payment: { limit: (id: string) => Promise<{ success: boolean; limit: number; remaining: number; reset: number }> };
+  pdf: { limit: (id: string) => Promise<{ success: boolean; limit: number; remaining: number; reset: number }> };
+  admin: { limit: (id: string) => Promise<{ success: boolean; limit: number; remaining: number; reset: number }> };
+  search: { limit: (id: string) => Promise<{ success: boolean; limit: number; remaining: number; reset: number }> };
+  like: { limit: (id: string) => Promise<{ success: boolean; limit: number; remaining: number; reset: number }> };
+  comment: { limit: (id: string) => Promise<{ success: boolean; limit: number; remaining: number; reset: number }> };
+}
+
+let rateLimiters: RateLimiterMap | null = null;
 
 function getRateLimiters() {
   if (rateLimiters) return rateLimiters;
@@ -88,7 +98,7 @@ export async function checkRateLimit(
 ): Promise<{ blocked: true; headers: Record<string, string> } | { blocked: false; headers?: undefined }> {
   const limiters = getRateLimiters();
   const limiter = limiters[limiterName];
-  const { success, limit, remaining, reset } = await limiter.limit(identifier);
+  const { success, limit, reset } = await limiter.limit(identifier);
 
   if (!success) {
     return {

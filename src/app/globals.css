@@ -1,7 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #051923;
+  /* Unified background — matches layout.tsx body class bg-[#0f0f0f] */
+  --background: #0f0f0f;
   --foreground: #f0ece4;
   
   --brand:         #0582CA;
@@ -30,7 +31,7 @@
   --font-bebas: var(--font-bebas-neue);
 }
 
-/* Base Body Override */
+/* Base Body Override — aligned with layout.tsx */
 body {
   background: var(--background);
   color: var(--foreground);

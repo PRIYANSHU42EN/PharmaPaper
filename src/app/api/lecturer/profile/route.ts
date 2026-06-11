@@ -13,11 +13,13 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    let { data: lecturer, error } = await supabase
+    const { data: fetchLecturer, error } = await supabase
       .from("lecturers")
       .select("*")
       .eq("user_id", userId)
       .maybeSingle();
+
+    let lecturer = fetchLecturer;
 
     if (error) {
       console.error("Fetch lecturer error:", error);

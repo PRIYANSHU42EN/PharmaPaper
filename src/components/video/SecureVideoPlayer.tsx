@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import VideoUpgradeOverlay from "./VideoUpgradeOverlay";
 
+// Dynamically import ReactPlayer to prevent SSR hydration mismatch
+const ReactPlayer = dynamic<any>(() => import("react-player"), {
+  ssr: false,
+});
+
 interface VideoPlayerProps {
-  videoId: string; // added to associate progress & likes correctly
+  videoId: string;
   youtubeId: string;
   isPremium: boolean;
   freePreviewSeconds: number; // default 120
@@ -13,13 +19,6 @@ interface VideoPlayerProps {
   onProgress: (seconds: number) => void;
   onComplete: () => void;
   seekTrigger?: { time: number } | null;
-}
-
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: (() => void) | undefined;
-  }
 }
 
 export default function SecureVideoPlayer({
@@ -35,7 +34,7 @@ export default function SecureVideoPlayer({
 }: VideoPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
-  const progressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastProgressSavedTimeRef = useRef<number>(Date.now());
 
   // States
   const [isPlaying, setIsPlaying] = useState(false);
@@ -59,6 +58,7 @@ export default function SecureVideoPlayer({
   // Prevent keyboard space conflict when user is typing in forms
   const isTypingRef = useRef(false);
 
+  // Sync typing reference
   useEffect(() => {
     const handleFocus = (e: any) => {
       const tag = e.target.tagName;
@@ -68,124 +68,24 @@ export default function SecureVideoPlayer({
     return () => document.removeEventListener("focusin", handleFocus);
   }, []);
 
-  // Initialize YT Player API
+  // Show resume banner if we have a valid lastPosition
   useEffect(() => {
-    if (!youtubeId) return;
-
-    let playerInstance: any = null;
-
-    const onPlayerReady = (event: any) => {
-      setDuration(event.target.getDuration());
-      event.target.setVolume(volume * 100);
-      event.target.setPlaybackRate(playbackRate);
-
-      // Handle resume logic on load
-      if (lastPosition > 30) {
-        setResumeTime(lastPosition);
-        setShowResumeBanner(true);
-      }
-    };
-
-    const onPlayerStateChange = (event: any) => {
-      const state = event.data;
-      // YT.PlayerState: UNSTARTED (-1), ENDED (0), PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
-      if (state === 1) {
-        setIsPlaying(true);
-        startProgressTracking();
-      } else if (state === 2 || state === 3) {
-        setIsPlaying(false);
-        stopProgressTracking();
-        // save progress on pause
-        if (playerRef.current) {
-          onProgress(playerRef.current.getCurrentTime());
-        }
-      } else if (state === 0) {
-        setIsPlaying(false);
-        stopProgressTracking();
-        onComplete();
-      }
-    };
-
-    const initPlayer = () => {
-      try {
-        playerInstance = new window.YT.Player("secure-player-iframe", {
-          videoId: youtubeId,
-          playerVars: {
-            controls: 0,
-            modestbranding: 1,
-            rel: 0,
-            iv_load_policy: 3,
-            disablekb: 1,
-            fs: 0,
-            playsinline: 1,
-            enablejsapi: 1,
-            origin: typeof window !== "undefined" ? window.location.origin : "",
-          },
-          events: {
-            onReady: onPlayerReady,
-            onStateChange: onPlayerStateChange,
-          },
-        });
-        playerRef.current = playerInstance;
-      } catch (err) {
-        console.error("Error creating YT Player instance:", err);
-      }
-    };
-
-    if (window.YT && window.YT.Player) {
-      initPlayer();
-    } else {
-      if (!document.getElementById("yt-iframe-api-script")) {
-        const tag = document.createElement("script");
-        tag.id = "yt-iframe-api-script";
-        tag.src = "https://www.youtube.com/iframe_api";
-        document.body.appendChild(tag);
-      }
-
-      const prevReady = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        if (prevReady) prevReady();
-        initPlayer();
-      };
+    if (lastPosition > 30) {
+      setResumeTime(lastPosition);
+      setShowResumeBanner(true);
     }
+  }, [lastPosition]);
 
-    return () => {
-      stopProgressTracking();
-      if (playerInstance && playerInstance.destroy) {
-        try {
-          playerInstance.destroy();
-        } catch (e) {
-          // ignore
-        }
-      }
-      playerRef.current = null;
-    };
-  }, [youtubeId]);
-
-  // Resume auto-dismiss / auto-resume
+  // Resume banner auto-dismiss / auto-resume
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (showResumeBanner) {
       timeout = setTimeout(() => {
-        // Auto-resume after 3 seconds
         handleResume();
       }, 3000);
     }
     return () => clearTimeout(timeout);
-  }, [showResumeBanner]);
-
-  // Auto-hide controls
-  useEffect(() => {
-    resetControlsTimer();
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
+  }, [showResumeBanner, resumeTime]);
 
   // Keyboard Shortcuts (Space to play/pause)
   useEffect(() => {
@@ -207,128 +107,73 @@ export default function SecureVideoPlayer({
     }
   }, [seekTrigger]);
 
-  // Progress Tracking loop
-  const startProgressTracking = () => {
-    if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-
-    let lastProgressSavedTime = Date.now();
-
-    progressTimerRef.current = setInterval(() => {
-      if (!playerRef.current || !playerRef.current.getCurrentTime) return;
-
-      const time = playerRef.current.getCurrentTime();
-      setCurrentTime(time);
-
-      // Buffer level
-      const fraction = playerRef.current.getVideoLoadedFraction ? playerRef.current.getVideoLoadedFraction() : 0;
-      setBuffered(fraction * (playerRef.current.getDuration() || 0));
-
-      // Premium Lock Logic:
-      // If isPremium AND userHasAccess = false: Allow playback until freePreviewSeconds
-      if (isPremium && !userHasAccess && time >= freePreviewSeconds) {
-        playerRef.current.pauseVideo();
-        playerRef.current.seekTo(freePreviewSeconds, true);
-        setCurrentTime(freePreviewSeconds);
-        setIsLocked(true);
-        setIsPlaying(false);
-        stopProgressTracking();
-        return;
-      }
-
-      // Check if complete (>90%)
-      const dur = playerRef.current.getDuration() || 0;
-      if (dur > 0 && time / dur >= 0.9) {
-        onComplete();
-      }
-
-      // Save progress to database every 15 seconds
-      const now = Date.now();
-      if (now - lastProgressSavedTime >= 15000) {
-        onProgress(time);
-        lastProgressSavedTime = now;
-      }
-    }, 250);
-  };
-
-  const stopProgressTracking = () => {
-    if (progressTimerRef.current) {
-      clearInterval(progressTimerRef.current);
-      progressTimerRef.current = null;
-    }
-  };
+  // Auto-hide controls handler
+  useEffect(() => {
+    resetControlsTimer();
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [isPlaying]);
 
   // Interaction handlers
-  const togglePlay = () => {
+  function togglePlay() {
     if (isLocked) return;
-    if (!playerRef.current) return;
-
     if (isPlaying) {
-      playerRef.current.pauseVideo();
+      setIsPlaying(false);
+      onProgress(currentTime);
     } else {
-      // If user has no access, and we are already at or past freePreviewSeconds, lock it
-      const time = playerRef.current.getCurrentTime();
-      if (isPremium && !userHasAccess && time >= freePreviewSeconds) {
+      if (isPremium && !userHasAccess && currentTime >= freePreviewSeconds) {
         setIsLocked(true);
         return;
       }
-      playerRef.current.playVideo();
+      setIsPlaying(true);
     }
-  };
+  }
 
-  const handleSeek = (seconds: number) => {
-    if (!playerRef.current) return;
-
+  function handleSeek(seconds: number) {
     let targetTime = Math.max(0, Math.min(duration, seconds));
 
     // Limit seek for non-premium
     if (isPremium && !userHasAccess && targetTime > freePreviewSeconds) {
       targetTime = freePreviewSeconds;
       setIsLocked(true);
-      playerRef.current.pauseVideo();
+      setIsPlaying(false);
     }
 
-    playerRef.current.seekTo(targetTime, true);
+    if (playerRef.current) {
+      playerRef.current.seekTo(targetTime, "seconds");
+    }
     setCurrentTime(targetTime);
     onProgress(targetTime);
-  };
+  }
 
-  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  function handleProgressBarClick(e: React.MouseEvent<HTMLDivElement>) {
     if (isLocked || duration === 0) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const pos = (e.clientX - rect.left) / rect.width;
     handleSeek(pos * duration);
-  };
+  }
 
-  const changeVolume = (val: number) => {
+  function changeVolume(val: number) {
     const v = Math.max(0, Math.min(1, val));
     setVolume(v);
     setIsMuted(v === 0);
-    if (playerRef.current) {
-      playerRef.current.setVolume(v * 100);
-      playerRef.current.unMute();
-    }
-  };
+  }
 
-  const toggleMute = () => {
-    if (!playerRef.current) return;
-    if (isMuted) {
-      setIsMuted(false);
-      playerRef.current.unMute();
-      playerRef.current.setVolume(volume * 100);
-    } else {
-      setIsMuted(true);
-      playerRef.current.mute();
-    }
-  };
+  function toggleMute() {
+    setIsMuted(!isMuted);
+  }
 
-  const handleSpeedChange = (rate: number) => {
+  function handleSpeedChange(rate: number) {
     setPlaybackRate(rate);
-    if (playerRef.current) {
-      playerRef.current.setPlaybackRate(rate);
-    }
-  };
+  }
 
-  const toggleFullscreen = () => {
+  function toggleFullscreen() {
     if (!containerRef.current) return;
 
     if (!document.fullscreenElement) {
@@ -342,9 +187,9 @@ export default function SecureVideoPlayer({
         setIsFullscreen(false);
       });
     }
-  };
+  }
 
-  const resetControlsTimer = () => {
+  function resetControlsTimer() {
     setShowControls(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
 
@@ -353,12 +198,12 @@ export default function SecureVideoPlayer({
         setShowControls(false);
       }
     }, 3000);
-  };
+  }
 
   // Seek ±10s on double-tap
   const doubleTapTimerRef = useRef<{ time: number; x: number } | null>(null);
 
-  const handleVideoTouch = (e: React.TouchEvent<HTMLDivElement>) => {
+  function handleVideoTouch(e: React.TouchEvent<HTMLDivElement>) {
     resetControlsTimer();
     const now = Date.now();
     const touch = e.touches[0];
@@ -366,7 +211,6 @@ export default function SecureVideoPlayer({
     const touchX = touch.clientX - rect.left;
 
     if (doubleTapTimerRef.current && now - doubleTapTimerRef.current.time < 300) {
-      // Double tap!
       const isRight = touchX > rect.width / 2;
       if (isRight) {
         handleSeek(currentTime + 10);
@@ -377,21 +221,60 @@ export default function SecureVideoPlayer({
     } else {
       doubleTapTimerRef.current = { time: now, x: touchX };
     }
-  };
+  }
 
-  const handleResume = () => {
+  function handleResume() {
     setShowResumeBanner(false);
-    if (playerRef.current && resumeTime > 0) {
-      playerRef.current.seekTo(resumeTime, true);
-      playerRef.current.playVideo();
+    if (resumeTime > 0) {
+      if (playerRef.current) {
+        playerRef.current.seekTo(resumeTime, "seconds");
+      }
+      setCurrentTime(resumeTime);
+      setIsPlaying(true);
     }
-  };
+  }
 
-  const formatTime = (seconds: number) => {
+  function formatTime(seconds: number) {
     if (isNaN(seconds) || seconds === Infinity) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  }
+
+  // ReactPlayer progress callback
+  const handleProgressCallback = (state: {
+    played: number;
+    playedSeconds: number;
+    loaded: number;
+    loadedSeconds: number;
+  }) => {
+    const time = state.playedSeconds;
+    setCurrentTime(time);
+    setBuffered(state.loadedSeconds);
+
+    // Premium Lock Logic:
+    // If isPremium AND userHasAccess = false: Allow playback until freePreviewSeconds
+    if (isPremium && !userHasAccess && time >= freePreviewSeconds) {
+      setIsPlaying(false);
+      if (playerRef.current) {
+        playerRef.current.seekTo(freePreviewSeconds, "seconds");
+      }
+      setCurrentTime(freePreviewSeconds);
+      setIsLocked(true);
+      return;
+    }
+
+    // Check if complete (>90%)
+    if (duration > 0 && time / duration >= 0.9) {
+      onComplete();
+    }
+
+    // Save progress to database every 15 seconds
+    const now = Date.now();
+    if (now - lastProgressSavedTimeRef.current >= 15000) {
+      onProgress(time);
+      lastProgressSavedTimeRef.current = now;
+    }
   };
 
   return (
@@ -402,12 +285,43 @@ export default function SecureVideoPlayer({
       className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden group border border-[#0582CA]/20 shadow-xl select-none"
       style={{ touchAction: "manipulation" }}
     >
-      {/* 1. Youtube IFrame Element */}
+      {/* 1. ReactPlayer Element */}
       <div className="absolute inset-0 w-full h-full pointer-events-none">
-        <div id="secure-player-iframe" className="w-full h-full" />
+        {youtubeId && (
+          <ReactPlayer
+            ref={playerRef}
+            url={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+            playing={isPlaying}
+            volume={volume}
+            muted={isMuted}
+            playbackRate={playbackRate}
+            width="100%"
+            height="100%"
+            controls={false}
+            progressInterval={250}
+            onProgress={handleProgressCallback}
+            onDuration={setDuration}
+            onEnded={() => {
+              setIsPlaying(false);
+              onComplete();
+            }}
+            config={{
+              youtube: {
+                playerVars: {
+                  modestbranding: 1,
+                  rel: 0,
+                  iv_load_policy: 3,
+                  disablekb: 1,
+                  fs: 0,
+                  playsinline: 1,
+                },
+              },
+            }}
+          />
+        )}
       </div>
 
-      {/* 2. Transparent overlay to capture clicks and touch events (prevents clicking directly into YT player) */}
+      {/* 2. Transparent overlay to capture clicks and touch events */}
       <div
         onClick={togglePlay}
         onTouchStart={handleVideoTouch}
@@ -423,13 +337,13 @@ export default function SecureVideoPlayer({
           <div className="flex gap-2">
             <button
               onClick={handleResume}
-              className="px-4 py-1.5 rounded-full bg-brand text-[#07080f] font-semibold text-[10px] uppercase tracking-wider hover:bg-brand-light transition-all"
+              className="px-4 py-1.5 rounded-full bg-brand text-[#07080f] font-semibold text-[10px] uppercase tracking-wider hover:bg-brand-light transition-all cursor-pointer"
             >
               Resume
             </button>
             <button
               onClick={() => setShowResumeBanner(false)}
-              className="px-4 py-1.5 rounded-full border border-brand-border text-brand-cream/70 hover:text-brand-cream font-semibold text-[10px] uppercase tracking-wider transition-all"
+              className="px-4 py-1.5 rounded-full border border-brand-border text-brand-cream/70 hover:text-brand-cream font-semibold text-[10px] uppercase tracking-wider transition-all cursor-pointer"
             >
               Start Over
             </button>
@@ -457,7 +371,7 @@ export default function SecureVideoPlayer({
           />
           {/* Thumb indicator */}
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border border-brand rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity"
+            className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border border-brand rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity animate-pulse"
             style={{ left: `calc(${duration > 0 ? (currentTime / duration) * 100 : 0}% - 7px)` }}
           />
         </div>
@@ -516,7 +430,7 @@ export default function SecureVideoPlayer({
                   key={rate}
                   onClick={() => handleSpeedChange(rate)}
                   className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold transition-all cursor-pointer ${
-                    playbackRate === rate ? "bg-brand text-[#07080f]" : "hover:text-brand"
+                    playbackRate === rate ? "bg-brand text-[#07080f]" : "hover:text-brand text-brand-cream/60"
                   }`}
                 >
                   {rate}x
@@ -545,7 +459,6 @@ export default function SecureVideoPlayer({
         <VideoUpgradeOverlay
           isOpen={true}
           onClose={() => {
-            // Cannot dismiss premium lock page without paying, but we keep controls functional for seeking back
             setIsLocked(false);
             handleSeek(0);
           }}

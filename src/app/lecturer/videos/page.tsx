@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import LecturerLayout from "@/components/lecturer/LecturerLayout";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -176,12 +177,12 @@ export default function LecturerVideosPage() {
                 Get started by uploading your first syllabus lecture
               </p>
             </div>
-            <a
+            <Link
               href="/lecturer/upload"
               className="mt-2 px-6 py-2.5 rounded-xl bg-brand text-brand-charcoal text-[9px] uppercase font-mono tracking-widest font-extrabold shadow-lg transition-all"
             >
               Upload Video
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="glass-panel border-brand-border/40 rounded-2xl overflow-hidden shadow-xl">
