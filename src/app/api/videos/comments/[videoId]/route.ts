@@ -16,14 +16,16 @@ export async function GET(
     const limit = 10;
     const offset = (page - 1) * limit;
 
-    // Fetch video's lecturer_id to identify lecturer comments
+    // Fetch video's lecturer user_id to identify lecturer comments
     const { data: video } = await supabase
       .from("videos")
-      .select("lecturer_id")
+      .select(`
+        lecturer:lecturers(user_id)
+      `)
       .eq("id", videoId)
       .maybeSingle();
 
-    const lecturerId = video?.lecturer_id;
+    const lecturerUserId = (video as any)?.lecturer?.user_id;
 
     // Fetch top-level comments first (where parent_id is null)
     const { data: topComments, error: topError, count } = await supabase
@@ -66,13 +68,13 @@ export async function GET(
         repliesMap[parentId] = [];
       }
       // Flag lecturer
-      const isLecturer = lecturerId && reply.user_id === lecturerId;
+      const isLecturer = lecturerUserId && reply.user_id === lecturerUserId;
       repliesMap[parentId].push({ ...reply, isLecturer });
     });
 
     // Map top comments and attach replies
     const formattedComments = topComments.map((comment) => {
-      const isLecturer = lecturerId && comment.user_id === lecturerId;
+      const isLecturer = lecturerUserId && comment.user_id === lecturerUserId;
       return {
         ...comment,
         isLecturer,

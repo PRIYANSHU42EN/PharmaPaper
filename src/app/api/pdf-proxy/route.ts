@@ -20,8 +20,7 @@ const ALLOWED_HOSTS = [
   "drive.usercontent.google.com",
   "www.w3.org",
   "pcvvdcbivqzqrwrwowlp.supabase.co",
-  "localhost",
-  "127.0.0.1",
+  ...(process.env.NODE_ENV === "development" ? ["localhost", "127.0.0.1"] : []),
 ];
 
 function toDirectGoogleDriveUrl(url: string): string {
@@ -51,10 +50,31 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const urlParam = req.nextUrl.searchParams.get("url");
+  const idParam = req.nextUrl.searchParams.get("id");
+  let urlParam = req.nextUrl.searchParams.get("url");
+
+  if (idParam) {
+    // Validate UUID format
+    const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(idParam);
+    if (!isUuid) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
+    }
+    // Fetch file_url and title from study_materials using service_role supabase client
+    const { data: material, error: dbErr } = await supabase
+      .from("study_materials")
+      .select("file_url")
+      .eq("id", idParam)
+      .single();
+
+    if (dbErr || !material || !material.file_url) {
+      return NextResponse.json({ error: "Document not found or access denied" }, { status: 404 });
+    }
+    urlParam = material.file_url;
+  }
+
   if (!urlParam) {
     return NextResponse.json(
-      { error: "Missing 'url' query parameter" },
+      { error: "Missing 'url' or 'id' query parameter" },
       { status: 400 }
     );
   }
@@ -125,8 +145,7 @@ export async function GET(req: NextRequest) {
 
   if (
     parsedUrl.protocol !== "https:" &&
-    parsedUrl.hostname !== "localhost" &&
-    parsedUrl.hostname !== "127.0.0.1"
+    !(process.env.NODE_ENV === "development" && (parsedUrl.hostname === "localhost" || parsedUrl.hostname === "127.0.0.1"))
   ) {
     return NextResponse.json(
       { error: "Only HTTPS URLs are allowed" },

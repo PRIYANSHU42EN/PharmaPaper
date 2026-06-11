@@ -108,15 +108,20 @@ async function trackEvent(
   metadata?: Record<string, unknown>
 ): Promise<void> {
   try {
-    const { error } = await supabase.from("page_analytics").insert({
-      event_type: eventType,
-      page,
-      user_id: userId || null,
-      metadata: metadata || {},
+    const res = await fetch("/api/analytics/track", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        page,
+        metadata: metadata || {},
+      }),
     });
 
-    if (error) {
-      console.error(`Analytics [${eventType}] error:`, error.message);
+    if (!res.ok) {
+      console.error(`Analytics [${eventType}] response error: ${res.status}`);
     }
   } catch (err) {
     // Fire-and-forget — never block the user experience

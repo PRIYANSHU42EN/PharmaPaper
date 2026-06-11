@@ -50,7 +50,10 @@ export async function POST(req: NextRequest) {
       .update(body)
       .digest("hex");
 
-    if (expectedSignature !== razorpay_signature) {
+    const expectedBuffer = Buffer.from(expectedSignature, "utf8");
+    const signatureBuffer = Buffer.from(razorpay_signature, "utf8");
+
+    if (expectedBuffer.length !== signatureBuffer.length || !crypto.timingSafeEqual(expectedBuffer, signatureBuffer)) {
       return NextResponse.json(
         { error: "Signature verification failed. Invalid transaction source." },
         { status: 400 }

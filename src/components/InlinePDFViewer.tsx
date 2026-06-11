@@ -24,7 +24,8 @@ export default function InlinePDFViewer({ pdfUrl, onClose, title = "Document Vie
   const renderTaskRef = useRef<any>(null);
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const proxiedUrl = `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`;
+  const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(pdfUrl);
+  const proxiedUrl = isUuid ? `/api/pdf-proxy?id=${pdfUrl}` : `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`;
 
   // 1. Load PDF.js + fetch PDF with download progress
   useEffect(() => {

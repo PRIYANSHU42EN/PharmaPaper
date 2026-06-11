@@ -104,15 +104,28 @@ export async function POST(req: NextRequest) {
         const lecturerEmail = lecturerClerkUser.emailAddresses[0]?.emailAddress;
 
         if (lecturerEmail) {
+          const escapeHtml = (str: string): string => {
+            return str
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+          };
+
+          const safeLecturerName = escapeHtml(video.lecturer.name || "Lecturer");
+          const safeVideoTitle = escapeHtml(video.title || "Video Lecture");
+          const safeRejectionReason = escapeHtml(rejectionReason || "Does not meet curriculum guidelines.");
+
           const subject = action === "approve" 
-            ? `Lecture Approved & Published: ${video.title}` 
-            : `Feedback on Lecture Submission: ${video.title}`;
+            ? `Lecture Approved & Published: ${safeVideoTitle}` 
+            : `Feedback on Lecture Submission: ${safeVideoTitle}`;
 
           const htmlContent = action === "approve"
             ? `
               <div style="font-family: sans-serif; padding: 20px; color: #111;">
-                <h2>Good news, ${video.lecturer.name}!</h2>
-                <p>Your video lecture <strong>"${video.title}"</strong> has been approved by the editorial team.</p>
+                <h2>Good news, ${safeLecturerName}!</h2>
+                <p>Your video lecture <strong>"${safeVideoTitle}"</strong> has been approved by the editorial team.</p>
                 <p>It has been published and is now available for students on the PharmPaper platform.</p>
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                 <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://pharmapaper.com"}/videos/${video.id}" 
@@ -123,12 +136,12 @@ export async function POST(req: NextRequest) {
             `
             : `
               <div style="font-family: sans-serif; padding: 20px; color: #111;">
-                <h2>Hello ${video.lecturer.name},</h2>
-                <p>We reviewed your lecture submission: <strong>"${video.title}"</strong>.</p>
+                <h2>Hello ${safeLecturerName},</h2>
+                <p>We reviewed your lecture submission: <strong>"${safeVideoTitle}"</strong>.</p>
                 <p>Unfortunately, it has been rejected and needs changes before we can publish it.</p>
                 <div style="background: #fdf2f2; border: 1px solid #fde8e8; border-radius: 8px; padding: 15px; color: #9b1c1c; margin: 15px 0;">
                   <strong>Reviewer Feedback:</strong><br />
-                  ${rejectionReason || "Does not meet curriculum guidelines."}
+                  ${safeRejectionReason}
                 </div>
                 <p>You can edit the details and resubmit this lecture for approval directly through your management dashboard.</p>
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />

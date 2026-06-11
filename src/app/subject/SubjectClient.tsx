@@ -760,7 +760,7 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
 
         const { data, error } = await supabase
           .from("study_materials")
-          .select("*")
+          .select("id, title, semester, course, type, subject, created_at")
           .eq("semester", semesterDbVal);
         
         if (error) throw error;
@@ -906,9 +906,11 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
     return Math.round((completedCount / units.length) * 100);
   }, [completedUnits, units]);
 
-  const checkDocumentAccess = async (url: string, title: string) => {
+  const checkDocumentAccess = async (urlOrId: string, title: string) => {
     try {
-      const checkRes = await fetch(`/api/pdf-proxy?check=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`);
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(urlOrId);
+      const queryParam = isUuid ? `id=${urlOrId}` : `url=${encodeURIComponent(urlOrId)}`;
+      const checkRes = await fetch(`/api/pdf-proxy?check=true&${queryParam}&title=${encodeURIComponent(title)}`);
       if (checkRes.ok) {
         return true;
       }
@@ -1095,20 +1097,11 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                       </div>
                       <button
                         onClick={async () => {
-                          if (validateUrl(material.file_url)) {
-                            const isPdf = material.file_url.toLowerCase().endsWith(".pdf") || material.type === "pdf" || material.type === "notes";
-                            if (isPdf) {
-                              const hasAccess = await checkDocumentAccess(material.file_url, material.title || "Study Material");
-                              if (hasAccess) {
-                                trackPdfView(material.file_url, material.title || "Study Material", user?.id || null);
-                                setActivePdfUrl(material.file_url);
-                                setActivePdfTitle(material.title || "Study Material");
-                              }
-                            } else {
-                              window.open(material.file_url, "_blank", "noopener,noreferrer");
-                            }
-                          } else {
-                            alert("Invalid or insecure URL.");
+                          const hasAccess = await checkDocumentAccess(material.id, material.title || "Study Material");
+                          if (hasAccess) {
+                            trackPdfView(material.id, material.title || "Study Material", user?.id || null);
+                            setActivePdfUrl(material.id);
+                            setActivePdfTitle(material.title || "Study Material");
                           }
                         }}
                         className="px-3 py-1.5 rounded-lg bg-brand/10 hover:bg-brand border border-brand/20 text-brand hover:text-brand-charcoal text-[10px] font-bold uppercase tracking-wider transition-all shrink-0"
@@ -1185,15 +1178,13 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                         <button
                           onClick={async () => {
                             const pdf = getUnitDbPdf(unit.num);
-                            if (pdf && validateUrl(pdf.file_url)) {
-                              const hasAccess = await checkDocumentAccess(pdf.file_url, pdf.title || `${unit.num} Study Notes`);
+                            if (pdf) {
+                              const hasAccess = await checkDocumentAccess(pdf.id, pdf.title || `${unit.num} Study Notes`);
                               if (hasAccess) {
-                                trackPdfView(pdf.file_url, pdf.title || `${unit.num} Study Notes`, user?.id || null);
-                                setActivePdfUrl(pdf.file_url);
+                                trackPdfView(pdf.id, pdf.title || `${unit.num} Study Notes`, user?.id || null);
+                                setActivePdfUrl(pdf.id);
                                 setActivePdfTitle(pdf.title || `${unit.num} Study Notes`);
                               }
-                            } else {
-                              alert("Invalid or insecure PDF URL.");
                             }
                           }}
                           className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(142,146,144,0.4)] w-auto max-w-[90%] truncate"
@@ -1238,17 +1229,12 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                     <button
                       onClick={async () => {
                         const res = getUnitDbResource(unit.num, "questions");
-                        if (res && validateUrl(res.file_url)) {
-                          const isPdf = res.file_url.toLowerCase().endsWith(".pdf") || res.type === "pdf" || res.type === "questions";
-                          if (isPdf) {
-                            const hasAccess = await checkDocumentAccess(res.file_url, res.title || `${unit.num} Questions`);
-                            if (hasAccess) {
-                              trackPdfView(res.file_url, res.title || `${unit.num} Questions`, user?.id || null);
-                              setActivePdfUrl(res.file_url);
-                              setActivePdfTitle(res.title || `${unit.num} Questions`);
-                            }
-                          } else {
-                            window.open(res.file_url, "_blank", "noopener,noreferrer");
+                        if (res) {
+                          const hasAccess = await checkDocumentAccess(res.id, res.title || `${unit.num} Questions`);
+                          if (hasAccess) {
+                            trackPdfView(res.id, res.title || `${unit.num} Questions`, user?.id || null);
+                            setActivePdfUrl(res.id);
+                            setActivePdfTitle(res.title || `${unit.num} Questions`);
                           }
                         }
                       }}
@@ -1269,17 +1255,12 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                     <button
                       onClick={async () => {
                         const res = getUnitDbResource(unit.num, "quiz");
-                        if (res && validateUrl(res.file_url)) {
-                          const isPdf = res.file_url.toLowerCase().endsWith(".pdf") || res.type === "pdf" || res.type === "quiz";
-                          if (isPdf) {
-                            const hasAccess = await checkDocumentAccess(res.file_url, res.title || `${unit.num} Mock Assessment`);
-                            if (hasAccess) {
-                              trackPdfView(res.file_url, res.title || `${unit.num} Mock Assessment`, user?.id || null);
-                              setActivePdfUrl(res.file_url);
-                              setActivePdfTitle(res.title || `${unit.num} Mock Assessment`);
-                            }
-                          } else {
-                            window.open(res.file_url, "_blank", "noopener,noreferrer");
+                        if (res) {
+                          const hasAccess = await checkDocumentAccess(res.id, res.title || `${unit.num} Mock Assessment`);
+                          if (hasAccess) {
+                            trackPdfView(res.id, res.title || `${unit.num} Mock Assessment`, user?.id || null);
+                            setActivePdfUrl(res.id);
+                            setActivePdfTitle(res.title || `${unit.num} Mock Assessment`);
                           }
                         }
                       }}

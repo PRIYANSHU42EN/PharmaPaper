@@ -34,10 +34,17 @@ export async function GET(req: Request) {
       );
     }
 
-    // Format query for text search (join words with ' & ' for Postgres full-text)
-    const formattedQuery = parsed.data.query
+    const cleanWords = parsed.data.query
       .trim()
       .split(/\s+/)
+      .map(word => word.replace(/[^a-zA-Z0-9]/g, ''))
+      .filter(word => word.length > 0);
+
+    if (cleanWords.length === 0) {
+      return NextResponse.json({ results: [] });
+    }
+
+    const formattedQuery = cleanWords
       .map(word => `${word}:*`)
       .join(' & ');
 

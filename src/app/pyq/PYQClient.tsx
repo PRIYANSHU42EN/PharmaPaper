@@ -58,9 +58,11 @@ export default function PYQClient({ syllabusData, initialPremiumStatus }: PYQCli
     });
   }, []);
 
-  const checkDocumentAccess = async (url: string, title: string) => {
+  const checkDocumentAccess = async (urlOrId: string, title: string) => {
     try {
-      const checkRes = await fetch(`/api/pdf-proxy?check=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`);
+      const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(urlOrId);
+      const queryParam = isUuid ? `id=${urlOrId}` : `url=${encodeURIComponent(urlOrId)}`;
+      const checkRes = await fetch(`/api/pdf-proxy?check=true&${queryParam}&title=${encodeURIComponent(title)}`);
       if (checkRes.ok) {
         return true;
       }
@@ -101,7 +103,7 @@ export default function PYQClient({ syllabusData, initialPremiumStatus }: PYQCli
         
         const { data, error } = await supabase
           .from("study_materials")
-          .select("*")
+          .select("id, title, semester, course, type, subject, created_at")
           .eq("course", course)
           .eq("semester", semNum)
           .eq("type", "pyq");
@@ -404,12 +406,12 @@ export default function PYQClient({ syllabusData, initialPremiumStatus }: PYQCli
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
                             onClick={async () => {
-                              const targetUrl = dbPyq?.file_url || `/mock-pyq.pdf`;
+                              const targetUrlOrId = dbPyq ? dbPyq.id : `/mock-pyq.pdf`;
                               const targetTitle = dbPyq ? dbPyq.title : `${subject} PYQ`;
-                              const hasAccess = await checkDocumentAccess(targetUrl, targetTitle);
+                              const hasAccess = await checkDocumentAccess(targetUrlOrId, targetTitle);
                               if (hasAccess) {
-                                trackPdfView(targetUrl, targetTitle, user?.id || null);
-                                setActivePdfUrl(targetUrl);
+                                trackPdfView(targetUrlOrId, targetTitle, user?.id || null);
+                                setActivePdfUrl(targetUrlOrId);
                                 setActivePdfTitle(targetTitle);
                               }
                             }}

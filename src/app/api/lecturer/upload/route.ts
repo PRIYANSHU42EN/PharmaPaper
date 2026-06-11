@@ -120,6 +120,22 @@ export async function POST(req: NextRequest) {
     const resendApiKey = process.env.RESEND_API_KEY;
     if (resendApiKey) {
       try {
+        const escapeHtml = (str: string): string => {
+          return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+        };
+
+        const safeLecturerName = escapeHtml(lecturer.name || "Lecturer");
+        const safeTitle = escapeHtml(title || "");
+        const safeCourse = escapeHtml(course || "");
+        const safeSemester = escapeHtml(String(semester) || "1");
+        const safeSubject = escapeHtml(subject || "");
+        const safeUnit = escapeHtml(String(parsedUnit) || "1");
+
         const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || "admin@pharmapaper.com";
         await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -130,13 +146,13 @@ export async function POST(req: NextRequest) {
           body: JSON.stringify({
             from: "PharmPaper LMS <noreply@pharmapaper.com>",
             to: adminEmail,
-            subject: `New Video Lecture Awaiting Approval: ${title}`,
+            subject: `New Video Lecture Awaiting Approval: ${safeTitle}`,
             html: `
               <div style="font-family: sans-serif; padding: 20px; color: #111;">
                 <h2>New Lecture Video Submitted for Review</h2>
-                <p><strong>Lecturer:</strong> ${lecturer.name}</p>
-                <p><strong>Video Title:</strong> ${title}</p>
-                <p><strong>Course & Syllabus:</strong> ${course} - Sem ${semester} - Subject: ${subject} (Unit ${parsedUnit})</p>
+                <p><strong>Lecturer:</strong> ${safeLecturerName}</p>
+                <p><strong>Video Title:</strong> ${safeTitle}</p>
+                <p><strong>Course & Syllabus:</strong> ${safeCourse} - Sem ${safeSemester} - Subject: ${safeSubject} (Unit ${safeUnit})</p>
                 <p><strong>Access Level:</strong> ${isPremium ? "Premium (Gated)" : "Free Lecture"}</p>
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                 <p>Please log in to the administration portal to review, preview, and approve or reject this submission.</p>

@@ -115,11 +115,19 @@ export async function POST(req: Request) {
 
       return NextResponse.json({ success: true });
     } else if (operation === "LOG_ACTIVITY") {
-      const { admin_email, action, details } = payload;
+      const { action, details } = payload;
+
+      const { data: userData } = await supabase
+        .from("users")
+        .select("email")
+        .eq("id", userId)
+        .single();
+
+      const adminEmail = userData?.email || "Unknown Admin";
 
       const { error } = await supabase.rpc("secure_insert_activity_log", {
         p_secret: internalSecret,
-        p_admin_id: admin_email || "System",
+        p_admin_id: adminEmail,
         p_action: action,
         p_details: details || {},
       });
