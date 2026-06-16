@@ -50,11 +50,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
-  experimental: {
-    staticGenerationMaxConcurrency: 1,
-    workerThreads: false,
-    cpus: 1,
-  },
+
   async headers() {
     return [
       {
