@@ -135,7 +135,7 @@ export default function Dashboard() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen bg-[#050508] flex items-center justify-center font-mono text-xs tracking-wider uppercase text-brand">
+      <div className="min-h-screen bg-[#171717] flex items-center justify-center font-mono text-xs tracking-wider uppercase text-brand">
         Loading Dashboard...
       </div>
     );
@@ -144,31 +144,29 @@ export default function Dashboard() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
-
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-          --bg:        #050508;
-          --surface:   #0B0B0F;
-          --surface2:  #14141F;
+          --bg:        #171717;
+          --surface:   #1e1e1e;
+          --surface2:  #222222;
           --border:    rgba(255,255,255,0.05);
           --border2:   rgba(255,255,255,0.1);
-          --indigo:    #0582CA;
-          --indigo-l:  #00A6FB;
-          --indigo-d:  #006494;
-          --teal:      #38BDF8;
-          --amber:     #fbbf24;
-          --red:       #f87171;
-          --green:     #4ade80;
-          --text:      #F0ECE4;
-          --muted:     rgba(240,236,228,0.5);
-          --faint:     rgba(240,236,228,0.2);
+          --indigo:    #888888;
+          --indigo-l:  #aaaaaa;
+          --indigo-d:  #666666;
+          --teal:      #888888;
+          --amber:     #999999;
+          --red:       #777777;
+          --green:     #aaaaaa;
+          --text:      #fafafa;
+          --muted:     rgba(250,250,250,0.5);
+          --faint:     rgba(250,250,250,0.2);
         }
 
         body {
           background: var(--bg);
-          font-family: 'DM Sans', sans-serif;
+          font-family: 'Inter', sans-serif;
           color: var(--text);
           min-height: 100vh;
         }
@@ -178,13 +176,13 @@ export default function Dashboard() {
         /* Header */
         .header { margin-bottom: 2.5rem; }
         .header-top { display: flex; align-items: flex-start; justify-content: space-between; }
-        .greeting { font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 800; line-height: 1.1; }
+        .greeting { font-family: 'Inter', sans-serif; font-size: 1.9rem; font-weight: 800; line-height: 1.1; }
         .greeting span { color: var(--indigo-l); }
         .header-sub { color: var(--muted); font-size: 0.9rem; margin-top: .4rem; }
         .badge-premium {
           background: linear-gradient(135deg, var(--indigo-d), var(--indigo));
           color: #fff; font-size: .7rem; font-weight: 600; letter-spacing: .06em;
-          padding: .35rem .85rem; border-radius: 99px; font-family: 'Syne', sans-serif;
+          padding: .35rem .85rem; border-radius: 99px; font-family: 'Inter', sans-serif;
           text-transform: uppercase;
         }
 
@@ -192,7 +190,7 @@ export default function Dashboard() {
         .tabs { display: flex; gap: .5rem; margin-bottom: 2rem; padding: .3rem; background: var(--surface); border-radius: 14px; border: 1px solid var(--border); width: fit-content; }
         .tab {
           padding: .55rem 1.3rem; border-radius: 10px; font-size: .85rem;
-          font-family: 'Syne', sans-serif; font-weight: 600; cursor: pointer;
+          font-family: 'Inter', sans-serif; font-weight: 600; cursor: pointer;
           border: none; background: transparent; color: var(--muted); transition: all .2s;
         }
         .tab.active { background: var(--surface2); color: var(--text); box-shadow: 0 1px 8px rgba(0,0,0,.4); }
@@ -205,11 +203,11 @@ export default function Dashboard() {
         }
         .card::before {
           content: ''; position: absolute; inset: 0; border-radius: 20px;
-          background: linear-gradient(135deg, rgba(5,130,202,.04) 0%, transparent 60%);
+          background: linear-gradient(135deg, rgba(136, 136, 136,.04) 0%, transparent 60%);
           pointer-events: none;
         }
-        .card-label { font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-family: 'Syne', sans-serif; margin-bottom: .7rem; }
-        .card-value { font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800; line-height: 1; }
+        .card-label { font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-family: 'Inter', sans-serif; margin-bottom: .7rem; }
+        .card-value { font-family: 'Inter', sans-serif; font-size: 2.4rem; font-weight: 800; line-height: 1; }
         .card-sub { font-size: .82rem; color: var(--muted); margin-top: .35rem; }
 
         /* Grid layouts */
@@ -221,12 +219,12 @@ export default function Dashboard() {
         .trial-card {
           background: var(--surface); border-radius: 20px; padding: 1.6rem;
           border: 1px solid var(--border2); margin-bottom: 1.25rem;
-          background-image: linear-gradient(135deg, rgba(5,130,202,.08) 0%, rgba(56,189,248,.04) 100%);
+          background-image: linear-gradient(135deg, rgba(136, 136, 136,.08) 0%, rgba(136, 136, 136,.02) 100%);
         }
         .trial-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; }
-        .trial-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; }
+        .trial-title { font-family: 'Inter', sans-serif; font-size: 1.1rem; font-weight: 700; }
         .days-badge {
-          font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+          font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 800;
           color: var(--indigo-l);
         }
         .days-badge small { font-size: .75rem; font-weight: 400; color: var(--muted); display: block; text-align: right; }
@@ -235,8 +233,8 @@ export default function Dashboard() {
         .progress-wrap { background: rgba(255,255,255,.06); border-radius: 99px; height: 8px; overflow: hidden; margin: .8rem 0 .4rem; }
         .progress-fill { height: 100%; border-radius: 99px; transition: width .6s ease; }
         .progress-indigo { background: linear-gradient(90deg, var(--indigo-d), var(--indigo-l)); }
-        .progress-teal   { background: linear-gradient(90deg, #0284c7, var(--teal)); }
-        .progress-amber  { background: linear-gradient(90deg, #d97706, var(--amber)); }
+        .progress-teal   { background: linear-gradient(90deg, #555555, var(--teal)); }
+        .progress-amber  { background: linear-gradient(90deg, #777777, var(--amber)); }
 
         /* Referral code box */
         .code-box {
@@ -245,19 +243,19 @@ export default function Dashboard() {
           display: flex; align-items: center; justify-content: space-between;
           margin: 1rem 0;
         }
-        .code-text { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; letter-spacing: .15em; color: var(--indigo-l); }
+        .code-text { font-family: 'Inter', sans-serif; font-size: 1.4rem; font-weight: 800; letter-spacing: .15em; color: var(--indigo-l); }
         .code-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 
         /* Buttons */
-        .btn { padding: .6rem 1.2rem; border-radius: 10px; font-size: .85rem; font-weight: 600; font-family: 'Syne', sans-serif; cursor: pointer; border: none; transition: all .2s; text-decoration: none; display: inline-block; text-align: center; }
+        .btn { padding: .6rem 1.2rem; border-radius: 10px; font-size: .85rem; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; border: none; transition: all .2s; text-decoration: none; display: inline-block; text-align: center; }
         .btn-primary { background: var(--indigo); color: #000; }
         .btn-primary:hover { background: var(--indigo-l); }
         .btn-ghost { background: rgba(255,255,255,.05); color: var(--text); border: 1px solid var(--border2); }
         .btn-ghost:hover { background: rgba(255,255,255,.1); }
-        .btn-green  { background: rgba(74,222,128,.1); color: var(--green); border: 1px solid rgba(74,222,128,.2); }
-        .btn-green:hover { background: rgba(74,222,128,.2); }
-        .btn-blue   { background: rgba(56,189,248,.1); color: var(--teal); border: 1px solid rgba(56,189,248,.2); }
-        .btn-blue:hover { background: rgba(56,189,248,.2); }
+        .btn-green  { background: rgba(136,136,136,.1); color: var(--green); border: 1px solid rgba(136,136,136,.2); }
+        .btn-green:hover { background: rgba(136,136,136,.2); }
+        .btn-blue   { background: rgba(100,100,100,.1); color: var(--teal); border: 1px solid rgba(100,100,100,.2); }
+        .btn-blue:hover { background: rgba(100,100,100,.2); }
         .btn-full   { width: 100%; display: block; text-align: center; }
 
         /* Share buttons row */
@@ -269,19 +267,19 @@ export default function Dashboard() {
           flex: 1; background: var(--surface2); border: 1px solid var(--border);
           border-radius: 12px; padding: .7rem; text-align: center;
         }
-        .milestone.reached { border-color: rgba(5,130,202,.4); background: rgba(5,130,202,.08); }
-        .milestone-n { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; }
+        .milestone.reached { border-color: rgba(136, 136, 136,.4); background: rgba(136, 136, 136,.08); }
+        .milestone-n { font-family: 'Inter', sans-serif; font-size: 1rem; font-weight: 700; }
         .milestone-label { font-size: .65rem; color: var(--muted); margin-top: .2rem; }
         .milestone-reward { font-size: .65rem; color: var(--indigo-l); margin-top: .15rem; }
 
         /* Payment table */
         .pay-table { width: 100%; border-collapse: collapse; }
-        .pay-table th { text-align: left; font-size: .72rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-family: 'Syne', sans-serif; padding: .5rem .8rem .9rem; }
+        .pay-table th { text-align: left; font-size: .72rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-family: 'Inter', sans-serif; padding: .5rem .8rem .9rem; }
         .pay-table td { padding: .85rem .8rem; font-size: .88rem; border-top: 1px solid var(--border); }
         .pay-table tr:hover td { background: rgba(255,255,255,.02); }
 
         /* Status pill */
-        .pill { display: inline-block; padding: .2rem .7rem; border-radius: 99px; font-size: .72rem; font-weight: 600; font-family: 'Syne', sans-serif; text-transform: uppercase; }
+        .pill { display: inline-block; padding: .2rem .7rem; border-radius: 99px; font-size: .72rem; font-weight: 600; font-family: 'Inter', sans-serif; text-transform: uppercase; }
         .pill-paid { background: rgba(74,222,128,.1); color: var(--green); }
         .pill-pending { background: rgba(251,191,36,.1); color: var(--amber); }
         .pill-failed { background: rgba(248,113,113,.1); color: var(--red); }
@@ -548,7 +546,7 @@ export default function Dashboard() {
                   ['4', 'Hit 5 referrals → earn 1 month free!'],
                 ].map(([n, text]) => (
                   <div key={n} style={{ display: 'flex', gap: '.9rem', alignItems: 'center' }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(5,130,202,.1)', border: '1px solid rgba(5,130,202,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne', fontWeight: 700, fontSize: '.8rem', color: 'var(--indigo-l)', flexShrink: 0 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(136, 136, 136,.1)', border: '1px solid rgba(136, 136, 136,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne', fontWeight: 700, fontSize: '.8rem', color: 'var(--indigo-l)', flexShrink: 0 }}>
                       {n}
                     </div>
                     <span style={{ fontSize: '.88rem', color: 'var(--muted)' }}>{text}</span>
@@ -586,7 +584,7 @@ export default function Dashboard() {
 
             {/* Plan options — prices match /pricing page */}
             <div className="grid-2 fade-up delay-2">
-              <div className="card" style={{ borderColor: 'rgba(5,130,202,.2)' }}>
+              <div className="card" style={{ borderColor: 'rgba(136, 136, 136,.2)' }}>
                 <div className="card-label">Monthly</div>
                 <div className="card-value">₹199</div>
                 <div className="card-sub">per month · Full Access</div>
@@ -595,7 +593,7 @@ export default function Dashboard() {
                   Select Plan
                 </Link>
               </div>
-              <div className="card" style={{ borderColor: 'rgba(5,130,202,.4)', background: 'linear-gradient(135deg, rgba(5,130,202,.08), rgba(56,189,248,.02))' }}>
+              <div className="card" style={{ borderColor: 'rgba(136, 136, 136,.4)', background: 'linear-gradient(135deg, rgba(136, 136, 136,.08), rgba(136, 136, 136,.02))' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div className="card-label">Yearly Vault</div>
                   <span style={{ background: 'var(--indigo)', color: '#000', fontSize: '.65rem', fontWeight: 700, padding: '.2rem .6rem', borderRadius: 99, fontFamily: 'Syne' }}>SAVE 58%</span>

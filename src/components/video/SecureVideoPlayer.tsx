@@ -282,7 +282,7 @@ export default function SecureVideoPlayer({
       ref={containerRef}
       onMouseMove={resetControlsTimer}
       onMouseLeave={() => isPlaying && setShowControls(false)}
-      className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden group border border-[#0582CA]/20 shadow-xl select-none"
+      className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden group border border-[#888888]/20 shadow-xl select-none"
       style={{ touchAction: "manipulation" }}
     >
       {/* 1. ReactPlayer Element */}
@@ -330,7 +330,7 @@ export default function SecureVideoPlayer({
 
       {/* 3. Resume Banner */}
       {showResumeBanner && (
-        <div className="absolute top-4 left-4 right-4 z-30 glass-panel border-[#0582CA]/30 rounded-xl p-4 flex items-center justify-between animate-fade-in bg-black/80 backdrop-blur-md">
+        <div className="absolute top-4 left-4 right-4 z-30 glass-panel border-[#888888]/30 rounded-xl p-4 flex items-center justify-between animate-fade-in bg-black/80 backdrop-blur-md">
           <p className="text-xs text-brand-cream/90 font-medium">
             Resume watching from <span className="text-brand font-semibold">{formatTime(resumeTime)}</span>?
           </p>
@@ -357,23 +357,25 @@ export default function SecureVideoPlayer({
           showControls ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
-        {/* Progress Track */}
-        <div className="relative w-full h-1.5 bg-white/20 rounded-full cursor-pointer group/progress" onClick={handleProgressBarClick}>
-          {/* Buffered level */}
-          <div
-            className="absolute top-0 bottom-0 left-0 bg-white/10 rounded-full"
-            style={{ width: `${duration > 0 ? (buffered / duration) * 100 : 0}%` }}
-          />
-          {/* Current watched level */}
-          <div
-            className="absolute top-0 bottom-0 left-0 bg-brand rounded-full"
-            style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-          />
-          {/* Thumb indicator */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border border-brand rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity animate-pulse"
-            style={{ left: `calc(${duration > 0 ? (currentTime / duration) * 100 : 0}% - 7px)` }}
-          />
+        {/* Progress Track (increased touch-target surface area) */}
+        <div className="relative w-full py-3 cursor-pointer group/progress" onClick={handleProgressBarClick}>
+          <div className="relative w-full h-1.5 bg-white/20 rounded-full">
+            {/* Buffered level */}
+            <div
+              className="absolute top-0 bottom-0 left-0 bg-white/10 rounded-full"
+              style={{ width: `${duration > 0 ? (buffered / duration) * 100 : 0}%` }}
+            />
+            {/* Current watched level */}
+            <div
+              className="absolute top-0 bottom-0 left-0 bg-brand rounded-full"
+              style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+            />
+            {/* Thumb indicator */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border border-brand rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity animate-pulse"
+              style={{ left: `calc(${duration > 0 ? (currentTime / duration) * 100 : 0}% - 7px)` }}
+            />
+          </div>
         </div>
 
         {/* Lower Row Controls */}

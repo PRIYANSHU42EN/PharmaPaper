@@ -22,16 +22,16 @@ export default function GlobalError({ error, reset }: ErrorProps) {
 
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#0f0f0f] text-[#f0ece4] flex items-center justify-center px-6">
+      <body className="min-h-screen bg-[#171717] text-[#fafafa] flex items-center justify-center px-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
           className="text-center max-w-md w-full"
           style={{
-            background: "rgba(26,26,26,0.6)",
+            background: "rgba(23,23,23,0.8)",
             backdropFilter: "blur(12px)",
-            border: "1px solid rgba(5,130,202,0.1)",
+            border: "1px solid rgba(136,136,136,0.1)",
             borderRadius: "24px",
             padding: "3rem 2rem",
           }}
@@ -59,7 +59,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
               fontFamily: "system-ui, sans-serif",
               fontSize: "1.5rem",
               fontWeight: 800,
-              color: "#f0ece4",
+              color: "#fafafa",
               textTransform: "uppercase",
               letterSpacing: "0.05em",
               marginBottom: "0.75rem",
@@ -70,7 +70,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
 
           <p
             style={{
-              color: "rgba(240,236,228,0.5)",
+              color: "rgba(250,250,250,0.5)",
               fontSize: "0.875rem",
               lineHeight: 1.6,
               marginBottom: "2rem",
@@ -84,7 +84,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
                   marginTop: "0.5rem",
                   fontFamily: "monospace",
                   fontSize: "0.75rem",
-                  color: "rgba(240,236,228,0.3)",
+                  color: "rgba(250,250,250,0.3)",
                 }}
               >
                 Error ID: {error.digest}
@@ -98,8 +98,8 @@ export default function GlobalError({ error, reset }: ErrorProps) {
               style={{
                 padding: "0.75rem 2rem",
                 borderRadius: "999px",
-                background: "#0582CA",
-                color: "#0f0f0f",
+                background: "#888888",
+                color: "#171717",
                 fontWeight: 700,
                 fontSize: "0.75rem",
                 letterSpacing: "0.1em",
@@ -119,8 +119,8 @@ export default function GlobalError({ error, reset }: ErrorProps) {
                 padding: "0.75rem 2rem",
                 borderRadius: "999px",
                 background: "transparent",
-                border: "1px solid rgba(5,130,202,0.25)",
-                color: "#f0ece4",
+                border: "1px solid rgba(136,136,136,0.2)",
+                color: "#fafafa",
                 fontWeight: 600,
                 fontSize: "0.75rem",
                 letterSpacing: "0.1em",

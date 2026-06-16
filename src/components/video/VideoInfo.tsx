@@ -116,11 +116,11 @@ export default function VideoInfo({
   };
 
   return (
-    <div className="flex flex-col gap-4 p-5 rounded-2xl glass-panel border-[#0582CA]/15">
+    <div className="flex flex-col gap-4 p-5 rounded-2xl glass-panel border-[#888888]/15">
       {/* Title & Like Row */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-mono tracking-widest text-[#0582CA] uppercase">
+          <span className="text-[10px] font-mono tracking-widest text-[#888888] uppercase">
             {course} • Semester {semester} • {subject}
           </span>
           <h1 className="font-bebas text-3xl md:text-4xl text-brand-cream tracking-wide uppercase leading-tight">
@@ -135,7 +135,7 @@ export default function VideoInfo({
           className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold tracking-wider uppercase transition-all duration-300 ${
             liked
               ? "bg-red-500/10 border-red-500/40 text-red-400 hover:bg-red-500/20"
-              : "bg-white/5 border-white/10 hover:border-[#0582CA]/40 text-brand-cream/80 hover:text-brand-cream"
+              : "bg-white/5 border-white/10 hover:border-[#888888]/40 text-brand-cream/80 hover:text-brand-cream"
           }`}
         >
           <svg
@@ -159,7 +159,7 @@ export default function VideoInfo({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {lecturer && (
           <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-full overflow-hidden border border-[#0582CA]/25 bg-[#07080f]">
+            <div className="relative w-11 h-11 rounded-full overflow-hidden border border-[#888888]/25 bg-[#07080f]">
               <img
                 src={lecturer.avatarUrl || "https://api.dicebear.com/7.x/adventurer/svg?seed=aris"}
                 alt={lecturer.name}

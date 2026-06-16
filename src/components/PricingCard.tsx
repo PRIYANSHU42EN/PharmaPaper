@@ -28,7 +28,7 @@ export interface PricingTier {
 
 const variantClasses: Record<PricingTier["ctaVariant"], string> = {
   primary:
-    "w-full py-3 rounded-full bg-brand hover:bg-brand/90 text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(5,130,202,0.2)]",
+    "w-full py-3 rounded-full bg-brand hover:bg-brand/90 text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(136, 136, 136,0.2)]",
   secondary:
     "w-full py-3 rounded-full bg-brand/10 hover:bg-brand/20 text-brand border border-brand/30 font-bold text-[10px] tracking-widest uppercase transition-all",
   ghost:
@@ -59,7 +59,7 @@ export default function PricingCard({
   isCurrentPlan = false,
 }: PricingTier) {
   const cardClass = highlighted
-    ? "glass-panel border-brand/40 hover:border-brand p-6 rounded-3xl flex flex-col justify-between relative shadow-[0_0_30px_rgba(5,130,202,0.15)]"
+    ? "glass-panel border-brand/40 hover:border-brand p-6 rounded-3xl flex flex-col justify-between relative shadow-[0_0_30px_rgba(136, 136, 136,0.15)]"
     : "glass-panel border-brand-border/40 hover:border-brand-cream/10 p-6 rounded-3xl flex flex-col justify-between";
 
   const renderCTA = () => {

@@ -46,7 +46,7 @@ export default function PageShell({
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[60vw] h-[40vh] pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at top, rgba(5,130,202,0.06) 0%, transparent 70%)",
+            "radial-gradient(ellipse at top, rgba(255,255,255,0.02) 0%, transparent 70%)",
         }}
         aria-hidden="true"
       />

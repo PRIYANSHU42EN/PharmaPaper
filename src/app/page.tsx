@@ -1,5 +1,5 @@
 import { fetchSyllabusData } from "@/lib/db";
-import HomeClient from "./HomeClient";
+import HomeClient from "@/components/HomeClient";
 
 // Force dynamic rendering to ensure the data is fetched fresh from the database
 export const dynamic = "force-dynamic";

@@ -91,7 +91,7 @@ export default function PricingPage() {
           email: user?.primaryEmailAddress?.emailAddress || "",
         },
         theme: {
-          color: "#0582CA",
+          color: "#888888",
         },
         modal: {
           ondismiss: function () {
@@ -200,7 +200,7 @@ export default function PricingPage() {
       {/* Sticky navigation header */}
       <header className="w-full h-16 border-b border-brand-border/40 flex items-center justify-between px-6 md:px-12 backdrop-blur-md bg-brand-charcoal/80 z-50">
         <Link href="/" className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_8px_rgba(5,130,202,0.8)] animate-pulse" />
+          <span className="w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_8px_rgba(136, 136, 136,0.8)] animate-pulse" />
           <span className="font-bebas text-xl tracking-wider text-brand-cream font-bold">
             PHARM<span className="text-brand">PAPER</span>
           </span>
@@ -302,7 +302,7 @@ export default function PricingPage() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-12 p-6 glass-panel border-brand/35 bg-[#0B0B0F]/90 rounded-3xl text-center max-w-2xl w-full mx-auto relative overflow-hidden shadow-[0_4px_25px_rgba(5,130,202,0.08)]"
+                className="mb-12 p-6 glass-panel border-brand/35 bg-[#0B0B0F]/90 rounded-3xl text-center max-w-2xl w-full mx-auto relative overflow-hidden shadow-[0_4px_25px_rgba(136, 136, 136,0.08)]"
               >
                 <div className="absolute -top-1/4 -right-1/4 w-32 h-32 ambient-brand-glow opacity-20 pointer-events-none" />
                 <span className="px-3 py-1 rounded-full bg-brand-subtle border border-brand/30 text-[9px] uppercase tracking-widest font-mono text-brand mb-3 inline-block">
@@ -318,13 +318,13 @@ export default function PricingPage() {
                   <button
                     type="button"
                     onClick={() => setIsTrialModalOpen(true)}
-                    className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_15px_rgba(5,130,202,0.2)] hover:scale-[1.02]"
+                    className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_15px_rgba(136, 136, 136,0.2)] hover:scale-[1.02]"
                   >
                     🎓 Try Trial Now
                   </button>
                 ) : (
                   <SignInButton mode="modal">
-                    <button type="button" className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_15px_rgba(5,130,202,0.2)] hover:scale-[1.02]">
+                    <button type="button" className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_15px_rgba(136, 136, 136,0.2)] hover:scale-[1.02]">
                       🎓 Sign In to Start Trial
                     </button>
                   </SignInButton>
@@ -373,7 +373,7 @@ export default function PricingPage() {
 
               {!isSignedIn ? (
                 <SignInButton mode="modal">
-                  <button type="button" className="w-full py-3 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(5,130,202,0.2)]">
+                  <button type="button" className="w-full py-3 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(136, 136, 136,0.2)]">
                     Start Free Trial
                   </button>
                 </SignInButton>
@@ -381,7 +381,7 @@ export default function PricingPage() {
                 <button
                   type="button"
                   onClick={() => setIsTrialModalOpen(true)}
-                  className="w-full py-3 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(5,130,202,0.2)]"
+                  className="w-full py-3 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(136, 136, 136,0.2)]"
                 >
                   Start Free Trial
                 </button>
@@ -452,7 +452,7 @@ export default function PricingPage() {
             {/* TIER 3: FULL ACCESS MONTHLY */}
             <motion.div
               whileHover={{ y: -5 }}
-              className="glass-panel border-brand/40 hover:border-brand p-6 rounded-3xl flex flex-col justify-between relative shadow-[0_0_30px_rgba(5,130,202,0.15)]"
+              className="glass-panel border-brand/40 hover:border-brand p-6 rounded-3xl flex flex-col justify-between relative shadow-[0_0_30px_rgba(136, 136, 136,0.15)]"
             >
               <div className="absolute top-3 right-4 bg-brand text-brand-charcoal text-[7px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full">
                 Popular
@@ -494,7 +494,7 @@ export default function PricingPage() {
                 <div className="w-full h-11 bg-white/5 animate-pulse rounded-full" />
               ) : !isSignedIn ? (
                 <SignInButton mode="modal">
-                  <button className="w-full py-3 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(5,130,202,0.2)]">
+                  <button className="w-full py-3 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(136, 136, 136,0.2)]">
                     Sign in to buy
                   </button>
                 </SignInButton>
@@ -502,7 +502,7 @@ export default function PricingPage() {
                 <button
                   disabled={loading}
                   onClick={() => handleCheckout("premium_monthly", 19900, "Full Access Monthly")}
-                  className="w-full py-3 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(5,130,202,0.2)]"
+                  className="w-full py-3 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-bold text-[10px] tracking-widest uppercase transition-all shadow-[0_4px_15px_rgba(136, 136, 136,0.2)]"
                 >
                   {loading ? "Processing..." : "Get Full Access"}
                 </button>

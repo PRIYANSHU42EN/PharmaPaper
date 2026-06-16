@@ -65,27 +65,27 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
 
   const base = transparent
     ? "w-full h-16 flex items-center justify-between px-6 md:px-12"
-    : "fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl h-16 glass-panel border-brand-border rounded-full flex items-center justify-between px-8 z-50";
+    : "fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl h-16 glass-panel border-[#222222] rounded-full flex items-center justify-between px-8 z-50";
 
   return (
     <header id="main-navbar" className={base}>
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="PharmPaper home">
-        <span className="w-3 h-3 rounded-full bg-brand shadow-[0_0_10px_rgba(5,130,202,0.8)] animate-pulse" />
-        <span className="font-bebas text-2xl tracking-wider text-brand-cream font-bold">
+        <span className="w-3 h-3 rounded-full bg-[#888888] shadow-[0_0_10px_rgba(136,136,136,0.5)] animate-pulse" />
+        <span className="font-bebas text-2xl tracking-wider text-[#fafafa] font-bold">
           {renderLogo(siteName)}
         </span>
       </Link>
 
       {/* Desktop nav links */}
       <nav
-        className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide text-brand-cream/70"
+        className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide text-[#fafafa]/70"
         aria-label="Primary navigation"
       >
-        <Link href="/notes" className="hover:text-brand transition-colors duration-200">
+        <Link href="/notes" className="hover:text-[#888888] transition-colors duration-200">
           Notes
         </Link>
-        <Link href="/pyq" className="hover:text-brand transition-colors duration-200">
+        <Link href="/pyq" className="hover:text-[#888888] transition-colors duration-200">
           Question Papers
         </Link>
         
@@ -95,10 +95,10 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
           onMouseEnter={() => setShowMegaMenu(true)}
           onMouseLeave={() => setShowMegaMenu(false)}
         >
-          <Link href="/videos" className="hover:text-brand transition-colors duration-200 py-5 flex items-center gap-1">
+          <Link href="/videos" className="hover:text-[#888888] transition-colors duration-200 py-5 flex items-center gap-1">
             Video Lectures
             <svg
-              className={`w-3.5 h-3.5 transition-transform duration-300 ${showMegaMenu ? "rotate-180 text-brand" : "text-brand-cream/50"}`}
+              className={`w-3.5 h-3.5 transition-transform duration-300 ${showMegaMenu ? "rotate-180 text-[#888888]" : "text-[#fafafa]/50"}`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -108,10 +108,10 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
           </Link>
 
           {showMegaMenu && (
-            <div className="absolute top-[48px] left-1/2 -translate-x-1/2 w-[480px] glass-panel border border-brand-border p-6 rounded-2xl shadow-[0_10px_50px_rgba(0,0,0,0.5)] z-[100] grid grid-cols-2 gap-6 transition-all duration-300">
+            <div className="absolute top-[48px] left-1/2 -translate-x-1/2 w-[480px] glass-panel border border-[#222222] p-6 rounded-2xl shadow-[0_10px_50px_rgba(0,0,0,0.5)] z-[100] grid grid-cols-2 gap-6 transition-all duration-300">
               {/* B.Pharm Column */}
               <div>
-                <h4 className="text-[10px] text-brand font-mono uppercase tracking-widest font-bold mb-3 border-b border-brand-border/30 pb-1">
+                <h4 className="text-[10px] text-[#888888] font-mono uppercase tracking-widest font-bold mb-3 border-b border-brand-border/30 pb-1">
                   B.Pharm Lectures
                 </h4>
                 <ul className="flex flex-col gap-2">
@@ -119,7 +119,7 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
                     <li key={sub.name}>
                       <Link
                         href={`/subject?name=${encodeURIComponent(sub.name)}&sem=${sub.sem}&type=${sub.type}`}
-                        className="text-xs text-brand-cream/75 hover:text-brand transition-colors duration-150 block truncate font-medium"
+                        className="text-xs text-[#fafafa]/75 hover:text-[#888888] transition-colors duration-150 block truncate font-medium"
                       >
                         {sub.name}
                       </Link>
@@ -130,7 +130,7 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
 
               {/* D.Pharm Column */}
               <div>
-                <h4 className="text-[10px] text-brand font-mono uppercase tracking-widest font-bold mb-3 border-b border-brand-border/30 pb-1">
+                <h4 className="text-[10px] text-[#888888] font-mono uppercase tracking-widest font-bold mb-3 border-b border-brand-border/30 pb-1">
                   D.Pharm Lectures
                 </h4>
                 <ul className="flex flex-col gap-2">
@@ -138,17 +138,17 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
                     <li key={sub.name}>
                       <Link
                         href={`/subject?name=${encodeURIComponent(sub.name)}&sem=${sub.sem}&type=${sub.type}`}
-                        className="text-xs text-brand-cream/75 hover:text-brand transition-colors duration-150 block truncate font-medium"
+                        className="text-xs text-[#fafafa]/75 hover:text-[#888888] transition-colors duration-150 block truncate font-medium"
                       >
                         {sub.name}
                       </Link>
                     </li>
                   ))}
                 </ul>
-                <div className="mt-4 pt-3 border-t border-brand-border/30">
+                <div className="mt-4 pt-3 border-t border-[#222222]/30">
                   <Link
                     href="/videos"
-                    className="text-[10px] text-brand hover:text-brand/80 font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
+                    className="text-[10px] text-[#888888] hover:text-[#aaaaaa] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
                   >
                     View Video Vault ➔
                   </Link>
@@ -160,7 +160,7 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
 
         <Link
           href="/pricing"
-          className="text-brand hover:text-brand/80 font-semibold transition-colors duration-200"
+          className="text-[#888888] hover:text-[#aaaaaa] font-semibold transition-colors duration-200"
         >
           Go Premium
         </Link>
@@ -172,7 +172,7 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
           <SignInButton mode="modal">
             <button
               id="navbar-signin-btn"
-              className="px-4 py-2 rounded-full text-brand-cream/80 hover:text-brand-cream border border-brand-border hover:border-brand font-semibold text-xs tracking-wider uppercase transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer"
+              className="px-4 py-2 rounded-full text-[#fafafa]/80 hover:text-[#fafafa] border border-[#222222] hover:border-[#888888] font-semibold text-xs tracking-wider uppercase transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer"
             >
               Sign In
             </button>
@@ -180,7 +180,7 @@ export default function Navbar({ transparent = false, siteName: propSiteName }: 
           <SignUpButton mode="modal">
             <button
               id="navbar-signup-btn"
-              className="hidden sm:block px-5 py-2 rounded-full bg-brand hover:bg-brand/90 text-brand-charcoal font-semibold text-xs tracking-wider uppercase transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-[0_4px_20px_rgba(5,130,202,0.25)] cursor-pointer"
+              className="hidden sm:block px-5 py-2 rounded-full bg-[#888888] hover:bg-[#aaaaaa] text-[#171717] font-semibold text-xs tracking-wider uppercase transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-[0_4px_20px_rgba(136,136,136,0.15)] cursor-pointer"
             >
               Sign Up
             </button>

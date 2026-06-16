@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
                 <p>It has been published and is now available for students on the PharmPaper platform.</p>
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                 <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://pharmapaper.com"}/videos/${video.id}" 
-                   style="display: inline-block; padding: 10px 20px; background: #0582CA; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                   style="display: inline-block; padding: 10px 20px; background: #171717; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">
                   View Live Videowatch Page
                 </a>
               </div>
@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
                 <p>You can edit the details and resubmit this lecture for approval directly through your management dashboard.</p>
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                 <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://pharmapaper.com"}/lecturer/videos" 
-                   style="display: inline-block; padding: 10px 20px; background: #0582CA; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                   style="display: inline-block; padding: 10px 20px; background: #171717; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">
                   Go to Video Manager
                 </a>
               </div>

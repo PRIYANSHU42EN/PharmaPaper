@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body
-        className={`${bebasNeue.variable} ${inter.variable} min-h-full bg-[#0f0f0f] text-[#f0ece4] font-sans antialiased overflow-x-hidden`}
+        className={`${bebasNeue.variable} ${inter.variable} min-h-full bg-[#171717] text-[#fafafa] font-sans antialiased overflow-x-hidden`}
         suppressHydrationWarning
       >
         <ClerkProvider afterSignOutUrl="/">

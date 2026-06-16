@@ -45,7 +45,13 @@ export async function POST(req: NextRequest) {
       .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
       .digest("hex");
 
-    if (generated_signature !== razorpay_signature) {
+    const expectedBuffer = Buffer.from(generated_signature, "utf8");
+    const signatureBuffer = Buffer.from(razorpay_signature, "utf8");
+
+    if (
+      expectedBuffer.length !== signatureBuffer.length ||
+      !crypto.timingSafeEqual(expectedBuffer, signatureBuffer)
+    ) {
       return NextResponse.json(
         { error: "Subscription verification failed. Signature mismatch." },
         { status: 400 }

@@ -3,13 +3,22 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 
+interface StatusResponse {
+  isPremium: boolean;
+  isTrial: boolean;
+  daysLeft: number;
+  trialEnd: string | null;
+  level: string; // "free" | "trial" | "premium" | "video_only"
+  canWatchVideos: boolean;
+}
+
 export default function NavbarBadge() {
   const { isSignedIn } = useAuth();
-  const [level, setLevel] = useState<string | null>(null);
+  const [status, setStatus] = useState<StatusResponse | null>(null);
 
   useEffect(() => {
     if (!isSignedIn) {
-      setLevel(null);
+      setStatus(null);
       return;
     }
 
@@ -19,10 +28,8 @@ export default function NavbarBadge() {
           if (res.ok) return res.json();
           throw new Error("Failed to fetch status");
         })
-        .then((data) => {
-          if (data && data.level) {
-            setLevel(data.level);
-          }
+        .then((data: StatusResponse) => {
+          setStatus(data);
         })
         .catch((err) => console.error("Error fetching navbar status:", err));
     };
@@ -33,25 +40,37 @@ export default function NavbarBadge() {
     return () => clearInterval(interval);
   }, [isSignedIn]);
 
-  if (!level || level === "free" || level === "none") return null;
+  // If not signed in, show nothing or default free
+  if (!isSignedIn) return null;
 
-  let text = "";
-  let badgeStyles = "";
+  const level = status?.level || "free";
+  const daysLeft = status?.daysLeft ?? 0;
+  const isTrial = status?.isTrial ?? false;
 
-  if (level === "trial") {
-    text = "Trial";
-    badgeStyles = "bg-brand/10 text-brand border-brand/30";
-  } else if (level === "video_only") {
-    text = "Video";
-    badgeStyles = "bg-blue-500/10 text-blue-400 border-blue-500/20";
-  } else if (level === "premium") {
-    text = "Pro";
-    badgeStyles = "bg-amber-500/10 text-amber-400 border-amber-500/30";
+  let text = "FREE";
+  let badgeStyles = "bg-white/[0.02] text-[#888888] border-white/5";
+  let showPulse = false;
+
+  if (level === "premium" || level === "video_only") {
+    text = "PRO";
+    badgeStyles = "bg-white/10 text-white border-white/20";
+  } else if (isTrial && level === "trial") {
+    if (daysLeft <= 3) {
+      text = `EXPIRES SOON (${daysLeft}d)`;
+      badgeStyles = "bg-red-500/10 text-red-400 border-red-500/20 animate-pulse";
+    } else {
+      text = `TRIAL ${daysLeft}d`;
+      badgeStyles = "bg-white/5 text-[#888888] border-white/10";
+      showPulse = true;
+    }
+  } else if (level === "free") {
+    text = "FREE";
+    badgeStyles = "bg-white/[0.02] text-[#888888] border-white/5";
   }
 
   return (
-    <span className={`px-2 py-0.5 rounded-full border text-[9px] font-mono font-extrabold tracking-wider uppercase inline-flex items-center gap-1.5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] ${badgeStyles}`}>
-      <span className="w-1 h-1 rounded-full bg-current animate-pulse" />
+    <span className={`px-3 py-1 rounded-full border text-[10px] font-mono font-extrabold tracking-wider uppercase inline-flex items-center gap-1.5 transition-all duration-300 ${badgeStyles}`}>
+      {showPulse && <span className="w-1.5 h-1.5 rounded-full bg-[#888888] animate-pulse" />}
       {text}
     </span>
   );

@@ -10,7 +10,7 @@ export default function UpgradePrompt({ message = "This premium study vault requ
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="glass-panel border-brand-border bg-[#0B0B0F]/90 max-w-lg w-full p-8 md:p-10 rounded-3xl text-center relative z-10 shadow-[0_10px_50px_rgba(5,130,202,0.15)] overflow-hidden"
+        className="glass-panel border-brand-border bg-[#0B0B0F]/90 max-w-lg w-full p-8 md:p-10 rounded-3xl text-center relative z-10 shadow-[0_10px_50px_rgba(136, 136, 136,0.15)] overflow-hidden"
       >
         {/* Ambient background glow inside paywall */}
         <div className="absolute -top-1/4 -right-1/4 w-48 h-48 bg-brand/10 filter blur-3xl pointer-events-none" />
@@ -48,7 +48,7 @@ export default function UpgradePrompt({ message = "This premium study vault requ
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/pricing"
-            className="flex-1 py-3.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-extrabold text-xs tracking-widest uppercase text-center transition-all duration-300 shadow-[0_4px_20px_rgba(5,130,202,0.25)] hover:scale-[1.02] active:scale-[0.98]"
+            className="flex-1 py-3.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-extrabold text-xs tracking-widest uppercase text-center transition-all duration-300 shadow-[0_4px_20px_rgba(136, 136, 136,0.25)] hover:scale-[1.02] active:scale-[0.98]"
           >
             🎓 View Pricing & Plans
           </Link>

@@ -130,23 +130,23 @@ export default function LecturerAnalyticsPage() {
                 <AreaChart data={performanceTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0582CA" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#0582CA" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#888888" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#888888" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2a2e35" />
-                  <XAxis dataKey="date" stroke="#0582CA" fontSize={8} tickLine={false} />
-                  <YAxis stroke="#0582CA" fontSize={8} tickLine={false} />
+                  <XAxis dataKey="date" stroke="#888888" fontSize={8} tickLine={false} />
+                  <YAxis stroke="#888888" fontSize={8} tickLine={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#0b0c10",
-                      borderColor: "rgba(5, 130, 202, 0.4)",
+                      borderColor: "rgba(136, 136, 136, 0.4)",
                       fontSize: "10px",
                       borderRadius: "8px",
                       color: "#fff",
                     }}
                   />
-                  <Area type="monotone" dataKey="views" stroke="#0582CA" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" />
+                  <Area type="monotone" dataKey="views" stroke="#888888" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -184,18 +184,18 @@ export default function LecturerAnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={subscriberTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2a2e35" />
-                  <XAxis dataKey="month" stroke="#0582CA" fontSize={8} tickLine={false} />
-                  <YAxis stroke="#0582CA" fontSize={8} tickLine={false} />
+                  <XAxis dataKey="month" stroke="#888888" fontSize={8} tickLine={false} />
+                  <YAxis stroke="#888888" fontSize={8} tickLine={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#0b0c10",
-                      borderColor: "rgba(5, 130, 202, 0.4)",
+                      borderColor: "rgba(136, 136, 136, 0.4)",
                       fontSize: "10px",
                       borderRadius: "8px",
                       color: "#fff",
                     }}
                   />
-                  <Line type="monotone" dataKey="subscribers" stroke="#0582CA" strokeWidth={2} activeDot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="subscribers" stroke="#888888" strokeWidth={2} activeDot={{ r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -210,18 +210,18 @@ export default function LecturerAnalyticsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={watchRetention} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#2a2e35" />
-                  <XAxis dataKey="interval" stroke="#0582CA" fontSize={8} tickLine={false} />
-                  <YAxis stroke="#0582CA" fontSize={8} tickLine={false} />
+                  <XAxis dataKey="interval" stroke="#888888" fontSize={8} tickLine={false} />
+                  <YAxis stroke="#888888" fontSize={8} tickLine={false} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "#0b0c10",
-                      borderColor: "rgba(5, 130, 202, 0.4)",
+                      borderColor: "rgba(136, 136, 136, 0.4)",
                       fontSize: "10px",
                       borderRadius: "8px",
                       color: "#fff",
                     }}
                   />
-                  <Bar dataKey="retention" fill="#0582CA" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="retention" fill="#888888" radius={[4, 4, 0, 0]} maxBarSize={40} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

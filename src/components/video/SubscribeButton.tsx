@@ -25,7 +25,7 @@ export default function SubscribeButton({
   const handleSubscribe = async () => {
     if (!isSignedIn) {
       // Direct unauthorized users to Clerk sign-in
-      router.push("/sign-in");
+      router.push("/login");
       return;
     }
 

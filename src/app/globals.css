@@ -1,116 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Unified background — matches layout.tsx body class bg-[#0f0f0f] */
-  --background: #0f0f0f;
-  --foreground: #f0ece4;
-  
-  --brand:         #0582CA;
-  --brand-light:   #00A6FB;
-  --brand-dark:    #006494;
-  --brand-subtle:  rgba(5, 130, 202, 0.12);
-  --brand-border:  rgba(5, 130, 202, 0.25);
+  /* ── Monochrome Design System (from degine.md) ─────────── */
+  --bg:            #171717;
+  --surface:       #1e1e1e;
+  --surface2:      #222222;
+  --brand:         #888888;
+  --brand-light:   #aaaaaa;
+
+  /* Text */
+  --text:          #fafafa;
+  --text-secondary: #999999;
+  --muted:         #999999;
+  --faint:         rgba(255,255,255,0.12);
+
+  /* Borders & Glows */
+  --border:        #222222;
+  --border2:       rgba(255,255,255,0.08);
+  --glow:          rgba(255,255,255,0.03);
+
+  /* Font stacks — Inter for all, mono for code */
+  --font-heading:  'Inter', system-ui, sans-serif;
+  --font-body:     'Inter', system-ui, sans-serif;
+  --font-mono:     'JetBrains Mono', ui-monospace, monospace;
+  --font-syne:     'Inter', sans-serif;
+  --font-manrope:  'Inter', sans-serif;
+  --font-dmsans:   'Inter', sans-serif;
+  --font-instrument: 'Inter', system-ui, sans-serif;
+
+  /* Spacing base unit (4px grid) */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+
+  /* Border radius scale */
+  --radius-subtle: 4px;
+  --radius-button: 6px;
+  --radius-card:   12px;
+  --radius:        .5rem;
 }
 
 @theme {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface2);
   --color-brand: var(--brand);
   --color-brand-light: var(--brand-light);
-  --color-brand-dark: var(--brand-dark);
-  --color-brand-subtle: var(--brand-subtle);
-  --color-brand-border: var(--brand-border);
-  
-  --color-brand-cream: #f0ece4;
-  --color-brand-charcoal: #0f0f0f;
-  --color-brand-gray: #1a1a1a;
-  --color-brand-dark-gray: #151515;
-  
-  --font-sans: var(--font-inter);
-  --font-bebas: var(--font-bebas-neue);
-}
+  --color-brand-dark: #666666;
+  --color-brand-subtle: rgba(136, 136, 136, 0.08);
+  --color-brand-charcoal: #171717;
+  --color-brand-cream: #fafafa;
+  --color-brand-border: #222222;
+  --color-text: var(--text);
+  --color-pink: #888888;
+  --color-coral: #999999;
+  --color-rose: #777777;
 
-/* Base Body Override — aligned with layout.tsx */
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  overflow-x: hidden;
-}
-
-/* Premium Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0f0f0f;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1a1a1a;
-  border-radius: 4px;
-  border: 2px solid #0f0f0f;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--brand);
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+  --font-syne: var(--font-syne);
+  --font-manrope: var(--font-manrope);
+  --font-dmsans: var(--font-dmsans);
+  --font-instrument: var(--font-instrument);
+  --font-bebas: var(--font-bebas, 'Inter', system-ui, sans-serif);
+  --font-bebas-neue: var(--font-bebas-neue, 'Inter', system-ui, sans-serif);
 }
 
 /* Ambient Glow Utilities */
 .ambient-brand-glow {
-  background: radial-gradient(circle, rgba(5, 130, 202, 0.15) 0%, rgba(15, 15, 15, 0) 70%);
+  background: radial-gradient(circle, rgba(136, 136, 136, 0.08) 0%, rgba(23, 23, 23, 0) 70%);
   filter: blur(40px);
   pointer-events: none;
 }
 
-/* Custom Glassmorphism Panels */
+/* ── Base ────────────────────────────────────────────────── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #171717;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* ── Liquid Glass (monochrome) ───────────────────────────── */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.02);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.08) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.08) 80%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.03);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: none;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 0px 0px,
+    rgba(0, 0, 0, 0.1) 0px 4px 4px 0px,
+    inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass-strong::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.1) 80%,
+    rgba(255, 255, 255, 0.25) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ── Legacy Glass Panel (kept for sub-pages) ─────────────── */
 .glass-panel {
-  background: rgba(26, 26, 26, 0.6);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(5, 130, 202, 0.08);
+  background: rgba(23, 23, 23, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(136, 136, 136, 0.12);
 }
 
-.glass-panel-hover {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes floatChip {
+  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
 }
 
-.glass-panel-hover:hover {
-  background: rgba(26, 26, 26, 0.85);
-  border-color: rgba(5, 130, 202, 0.3);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  transform: translateY(-2px);
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.4; }
 }
 
-/* Smooth Scrolling context */
-html {
-  scroll-behavior: smooth;
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
 }
 
-/* Font helpers */
-.font-bebas {
-  font-family: var(--font-bebas), sans-serif;
-  letter-spacing: 0.05em;
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.font-sans {
-  font-family: var(--font-sans), sans-serif;
+@keyframes ambientPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.03); }
 }
 
-/* Hero 3D WebGL Canvas Layering and Mobile Sizing */
-.hero-canvas {
-  z-index: 0 !important;
-  pointer-events: none !important;
+@keyframes subtleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 
-@media (max-width: 767px) {
-  .hero-canvas {
-    width: 50vw !important;
-    height: 50vh !important;
-    top: 25vh !important;
-    right: 0 !important;
-    left: auto !important;
-  }
+.animate-float-chip {
+  animation: floatChip 6s ease-in-out infinite;
 }
+
+.animate-pulse-dot {
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+.animate-scroll-bounce {
+  animation: scrollBounce 2s infinite;
+}
+
+.animate-ambient-pulse {
+  animation: ambientPulse 8s ease-in-out infinite;
+}
+
+.animate-subtle-float {
+  animation: subtleFloat 4s ease-in-out infinite;
+}
+
+/* ── Background layers (monochrome) ──────────────────────── */
+.background-grid-pattern {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.5;
+}
+
+.background-mesh-gradient {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 20%, rgba(136,136,136,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(170,170,170,0.02) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 50% 50%, rgba(30,30,30,0.4) 0%, transparent 70%);
+}
+
+.background-vignette {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(23,23,23,0.9) 100%);
+}
+
+/* ── Font class helpers (for Tailwind usage) ─────────────── */
+.font-heading { font-family: var(--font-heading); }
+.font-body { font-family: var(--font-body); }

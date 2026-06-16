@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
                 <p>Please log in to the administration portal to review, preview, and approve or reject this submission.</p>
                 <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://pharmapaper.com"}/admin" 
-                   style="display: inline-block; padding: 10px 20px; background: #0582CA; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                   style="display: inline-block; padding: 10px 20px; background: #171717; color: #fff; text-decoration: none; border-radius: 6px; font-weight: bold;">
                   Go to Approvals Dashboard
                 </a>
               </div>

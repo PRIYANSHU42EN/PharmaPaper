@@ -70,7 +70,7 @@ export default function AccessGate({
         <Link
           href="/pricing"
           id="access-gate-upgrade-btn"
-          className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand/90 text-brand-charcoal font-bold text-xs tracking-widest uppercase transition-all duration-300 shadow-[0_4px_15px_rgba(5,130,202,0.2)]"
+          className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand/90 text-brand-charcoal font-bold text-xs tracking-widest uppercase transition-all duration-300 shadow-[0_4px_15px_rgba(136, 136, 136,0.2)]"
         >
           ⭐ Upgrade Now
         </Link>

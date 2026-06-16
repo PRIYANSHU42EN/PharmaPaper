@@ -86,7 +86,7 @@ export default function DemoPayPage() {
           email: user?.primaryEmailAddress?.emailAddress || "demo@example.com",
         },
         theme: {
-          color: "#0582CA",
+          color: "#888888",
         },
         modal: {
           ondismiss: function () {
@@ -119,7 +119,7 @@ export default function DemoPayPage() {
 
       <header className="w-full h-16 border-b border-brand-border/40 flex items-center justify-between px-6 md:px-12 backdrop-blur-md bg-brand-charcoal/80 z-50">
         <Link href="/" className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_8px_rgba(5,130,202,0.8)] animate-pulse" />
+          <span className="w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_8px_rgba(136, 136, 136,0.8)] animate-pulse" />
           <span className="font-bebas text-xl tracking-wider text-brand-cream font-bold">
             PHARM<span className="text-brand">PAPER</span>
           </span>
@@ -168,7 +168,7 @@ export default function DemoPayPage() {
             <div className="w-full h-12 bg-brand-charcoal animate-pulse rounded-full" />
           ) : !isSignedIn ? (
             <SignInButton mode="modal">
-              <button className="w-full py-3.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-widest uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(5,130,202,0.25)]">
+              <button className="w-full py-3.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-widest uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(136, 136, 136,0.25)]">
                 Sign in to pay
               </button>
             </SignInButton>
@@ -176,7 +176,7 @@ export default function DemoPayPage() {
             <button
               disabled={loading}
               onClick={triggerDemoPayment}
-              className={`w-full py-3.5 rounded-full font-semibold text-xs tracking-widest uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(5,130,202,0.25)] ${
+              className={`w-full py-3.5 rounded-full font-semibold text-xs tracking-widest uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(136, 136, 136,0.25)] ${
                 loading
                   ? "bg-brand-charcoal text-brand-cream/30 border border-brand-border cursor-not-allowed"
                   : "bg-brand hover:bg-brand-dark text-brand-charcoal hover:scale-[1.02] active:scale-[0.98] cursor-pointer"

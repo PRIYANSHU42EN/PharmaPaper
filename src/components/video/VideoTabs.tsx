@@ -48,6 +48,11 @@ export default function VideoTabs({
   const [newNoteText, setNewNoteText] = useState("");
   const [noteError, setNoteError] = useState("");
 
+  // Loading / disabled states for mutations
+  const [commentingId, setCommentingId] = useState<string | null>(null);
+  const [savingNote, setSavingNote] = useState(false);
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+
   // Load data depending on activeTab
   useEffect(() => {
     if (activeTab === "discussion") {
@@ -84,9 +89,10 @@ export default function VideoTabs({
 
   const handlePostComment = async (parentId: string | null = null) => {
     const text = parentId ? replyTextMap[parentId] : commentText;
-    if (!text || !text.trim()) return;
+    if (!text || !text.trim() || commentingId) return;
 
     setCommentError("");
+    setCommentingId(parentId || "new");
     try {
       const res = await fetch("/api/videos/comment", {
         method: "POST",
@@ -131,6 +137,8 @@ export default function VideoTabs({
       }
     } catch (err: any) {
       setCommentError(err.message || "Failed to post comment.");
+    } finally {
+      setCommentingId(null);
     }
   };
 
@@ -167,7 +175,8 @@ export default function VideoTabs({
   };
 
   const handleAddPersonalNote = async () => {
-    if (!newNoteText.trim()) return;
+    if (!newNoteText.trim() || savingNote) return;
+    setSavingNote(true);
     setNoteError("");
 
     try {
@@ -193,10 +202,15 @@ export default function VideoTabs({
       setNewNoteText("");
     } catch (err: any) {
       setNoteError(err.message || "Failed to save note.");
+    } finally {
+      setSavingNote(false);
     }
   };
 
   const handleDeletePersonalNote = async (noteId: string) => {
+    if (!confirm("Are you sure you want to delete this note?")) return;
+    if (deletingNoteId) return;
+    setDeletingNoteId(noteId);
     try {
       const res = await fetch(`/api/videos/notes/${videoId}?id=${noteId}`, {
         method: "DELETE",
@@ -206,6 +220,8 @@ export default function VideoTabs({
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      setDeletingNoteId(null);
     }
   };
 
@@ -277,7 +293,7 @@ export default function VideoTabs({
   return (
     <div className="flex flex-col gap-4">
       {/* Tabs Header */}
-      <div className="flex border-b border-[#0582CA]/15 bg-white/5 p-1 rounded-xl gap-1">
+      <div className="flex border-b border-[#888888]/15 bg-white/5 p-1 rounded-xl gap-1">
         {[
           { id: "notes", label: "📚 Notes" },
           { id: "discussion", label: `💬 Discussion (${commentsCount})` },
@@ -289,7 +305,7 @@ export default function VideoTabs({
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all duration-300 cursor-pointer ${
               activeTab === tab.id
-                ? "bg-[#0582CA]/15 text-brand shadow-sm border border-[#0582CA]/25"
+                ? "bg-[#888888]/15 text-brand shadow-sm border border-[#888888]/25"
                 : "text-brand-cream/60 hover:text-brand-cream hover:bg-white/5 border border-transparent"
             }`}
           >
@@ -299,7 +315,7 @@ export default function VideoTabs({
       </div>
 
       {/* Tab Panel Content */}
-      <div className="min-h-[350px] p-5 rounded-2xl glass-panel border-[#0582CA]/15 bg-[#07080f]/40">
+      <div className="min-h-[350px] p-5 rounded-2xl glass-panel border-[#888888]/15 bg-[#07080f]/40">
         {/* TAB 1: Lecture Notes */}
         {activeTab === "notes" && (
           <article className="prose prose-invert max-w-none">
@@ -315,10 +331,11 @@ export default function VideoTabs({
               <div className="flex flex-col gap-2">
                 <textarea
                   value={commentText}
+                  disabled={commentingId === "new"}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Ask a question or share a study tip..."
                   maxLength={500}
-                  className="w-full min-h-[80px] p-3 rounded-xl bg-black/40 border border-[#0582CA]/20 text-brand-cream text-xs focus:outline-none focus:border-brand/50 placeholder-brand-cream/30 resize-none font-sans"
+                  className="w-full min-h-[80px] p-3 rounded-xl bg-black/40 border border-[#888888]/20 text-brand-cream text-xs focus:outline-none focus:border-brand/50 placeholder-brand-cream/30 resize-none font-sans disabled:opacity-50"
                 />
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-brand-cream/30 font-mono">
@@ -326,10 +343,10 @@ export default function VideoTabs({
                   </span>
                   <button
                     onClick={() => handlePostComment(null)}
-                    disabled={!commentText.trim()}
+                    disabled={!commentText.trim() || commentingId === "new"}
                     className="px-5 py-2 rounded-full bg-brand text-[#07080f] font-bold text-[10px] uppercase tracking-wider hover:bg-brand-light transition-all disabled:opacity-50 cursor-pointer"
                   >
-                    Post Comment
+                    {commentingId === "new" ? "Posting..." : "Post Comment"}
                   </button>
                 </div>
                 {commentError && (
@@ -356,9 +373,9 @@ export default function VideoTabs({
             ) : (
               <div className="space-y-5">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3 items-start border-l-2 border-[#0582CA]/10 pl-3">
+                  <div key={comment.id} className="flex gap-3 items-start border-l-2 border-[#888888]/10 pl-3">
                     {/* User profile picture */}
-                    <div className="w-8 h-8 rounded-full overflow-hidden border border-[#0582CA]/20 bg-black flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full overflow-hidden border border-[#888888]/20 bg-black flex-shrink-0">
                       <img src={comment.user_avatar} alt={comment.user_name} className="w-full h-full object-cover" />
                     </div>
 
@@ -402,7 +419,7 @@ export default function VideoTabs({
                         <div className="mt-3 space-y-3 pl-4 border-l border-white/5">
                           {comment.replies.map((reply: any) => (
                             <div key={reply.id} className="flex gap-2 items-start">
-                              <div className="w-6 h-6 rounded-full overflow-hidden border border-[#0582CA]/10 bg-black flex-shrink-0">
+                              <div className="w-6 h-6 rounded-full overflow-hidden border border-[#888888]/10 bg-black flex-shrink-0">
                                 <img src={reply.user_avatar} alt={reply.user_name} className="w-full h-full object-cover" />
                               </div>
                               <div className="flex-1 flex flex-col gap-0.5 min-w-0">
@@ -433,26 +450,28 @@ export default function VideoTabs({
                         <div className="mt-3 flex flex-col gap-2 bg-white/5 p-3 rounded-xl border border-white/5">
                           <textarea
                             value={replyTextMap[comment.id] || ""}
+                            disabled={commentingId === comment.id}
                             onChange={(e) =>
                               setReplyTextMap((prev) => ({ ...prev, [comment.id]: e.target.value }))
                             }
                             placeholder="Write a reply..."
                             maxLength={500}
-                            className="w-full min-h-[60px] p-2 bg-black/40 border border-[#0582CA]/10 rounded-lg text-xs text-brand-cream focus:outline-none focus:border-brand/40 resize-none font-sans"
+                            className="w-full min-h-[60px] p-2 bg-black/40 border border-[#888888]/10 rounded-lg text-xs text-brand-cream focus:outline-none focus:border-brand/40 resize-none font-sans disabled:opacity-50"
                           />
                           <div className="flex justify-end gap-2">
                             <button
                               onClick={() => setActiveReplyId(null)}
-                              className="px-3 py-1 rounded-full border border-white/10 text-brand-cream/50 hover:text-brand-cream text-[9px] uppercase font-bold tracking-wider transition-colors cursor-pointer"
+                              disabled={commentingId === comment.id}
+                              className="px-3 py-1 rounded-full border border-white/10 text-brand-cream/50 hover:text-brand-cream text-[9px] uppercase font-bold tracking-wider transition-colors cursor-pointer disabled:opacity-50"
                             >
                               Cancel
                             </button>
                             <button
                               onClick={() => handlePostComment(comment.id)}
-                              disabled={!(replyTextMap[comment.id] || "").trim()}
+                              disabled={!(replyTextMap[comment.id] || "").trim() || commentingId === comment.id}
                               className="px-4 py-1 rounded-full bg-brand text-[#07080f] font-bold text-[9px] uppercase tracking-wider hover:bg-brand-light transition-all disabled:opacity-50 cursor-pointer"
                             >
-                              Post Reply
+                              {commentingId === comment.id ? "Posting..." : "Post Reply"}
                             </button>
                           </div>
                         </div>
@@ -465,7 +484,7 @@ export default function VideoTabs({
                   <button
                     onClick={() => fetchComments(commentsPage + 1)}
                     disabled={commentsLoading}
-                    className="w-full py-2.5 rounded-xl border border-[#0582CA]/20 text-brand hover:bg-[#0582CA]/5 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 cursor-pointer"
+                    className="w-full py-2.5 rounded-xl border border-[#888888]/20 text-brand hover:bg-[#888888]/5 transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50 cursor-pointer"
                   >
                     {commentsLoading ? "Loading..." : "Load More comments"}
                   </button>
@@ -496,7 +515,7 @@ export default function VideoTabs({
                   return (
                     <div
                       key={pyq.id}
-                      className="p-4 rounded-xl border border-[#0582CA]/15 bg-black/30 hover:border-brand/40 transition-all flex flex-col justify-between gap-3 group"
+                      className="p-4 rounded-xl border border-[#888888]/15 bg-black/30 hover:border-brand/40 transition-all flex flex-col justify-between gap-3 group"
                     >
                       <div className="flex flex-col gap-1">
                         <span className="text-[9px] font-mono text-brand uppercase tracking-wider">
@@ -510,7 +529,7 @@ export default function VideoTabs({
                         href={pyq.file_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="self-start px-3 py-1.5 rounded-lg bg-[#0582CA]/10 hover:bg-[#0582CA]/25 text-[10px] uppercase font-mono font-bold tracking-wider text-brand-cream border border-[#0582CA]/10 transition-colors"
+                        className="self-start px-3 py-1.5 rounded-lg bg-[#888888]/10 hover:bg-[#888888]/25 text-[10px] uppercase font-mono font-bold tracking-wider text-brand-cream border border-[#888888]/10 transition-colors"
                       >
                         📄 Download PDF
                       </a>
@@ -559,17 +578,18 @@ export default function VideoTabs({
                   </div>
                   <textarea
                     value={newNoteText}
+                    disabled={savingNote}
                     onChange={(e) => setNewNoteText(e.target.value)}
                     placeholder="Type personal reference, formula, or timestamp bookmark here..."
-                    className="w-full min-h-[60px] p-2 bg-black/40 border border-[#0582CA]/10 rounded-lg text-xs text-brand-cream focus:outline-none focus:border-brand/40 resize-none font-sans"
+                    className="w-full min-h-[60px] p-2 bg-black/40 border border-[#888888]/10 rounded-lg text-xs text-brand-cream focus:outline-none focus:border-brand/40 resize-none font-sans disabled:opacity-50"
                   />
                   <div className="flex justify-end">
                     <button
                       onClick={handleAddPersonalNote}
-                      disabled={!newNoteText.trim() || personalNotes.length >= 100}
+                      disabled={!newNoteText.trim() || personalNotes.length >= 100 || savingNote}
                       className="px-5 py-2 rounded-full bg-brand text-[#07080f] font-bold text-[10px] uppercase tracking-wider hover:bg-brand-light transition-all disabled:opacity-50 cursor-pointer"
                     >
-                      Save Timestamp Note
+                      {savingNote ? "Saving..." : "Save Timestamp Note"}
                     </button>
                   </div>
                   {noteError && (
@@ -591,7 +611,7 @@ export default function VideoTabs({
                     {personalNotes.map((note) => (
                       <div
                         key={note.id}
-                        className="p-3.5 rounded-xl border border-[#0582CA]/10 bg-black/20 hover:border-[#0582CA]/25 transition-all flex items-start justify-between gap-4"
+                        className="p-3.5 rounded-xl border border-[#888888]/10 bg-black/20 hover:border-[#888888]/25 transition-all flex items-start justify-between gap-4"
                       >
                         <div className="flex-1 min-w-0 flex flex-col gap-1">
                           {/* Timestamp Link */}
@@ -608,10 +628,11 @@ export default function VideoTabs({
                         {/* Delete Button */}
                         <button
                           onClick={() => handleDeletePersonalNote(note.id)}
-                          className="text-brand-cream/25 hover:text-red-400 p-1 transition-colors text-xs font-mono font-bold cursor-pointer"
+                          disabled={deletingNoteId !== null}
+                          className="text-brand-cream/25 hover:text-red-400 p-1 transition-colors text-xs font-mono font-bold cursor-pointer disabled:opacity-50"
                           title="Delete note"
                         >
-                          ✕
+                          {deletingNoteId === note.id ? "..." : "✕"}
                         </button>
                       </div>
                     ))}

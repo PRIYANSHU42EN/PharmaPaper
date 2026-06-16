@@ -682,6 +682,7 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
 
   const [completedUnits, setCompletedUnits] = useState<Record<string, boolean>>({});
   const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
+  const [checkingAccessId, setCheckingAccessId] = useState<string | null>(null);
   
   // Interactive preview state
   const [previewDoc, setPreviewDoc] = useState<{
@@ -907,6 +908,7 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
   }, [completedUnits, units]);
 
   const checkDocumentAccess = async (urlOrId: string, title: string) => {
+    setCheckingAccessId(urlOrId);
     try {
       const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(urlOrId);
       const queryParam = isUuid ? `id=${urlOrId}` : `url=${encodeURIComponent(urlOrId)}`;
@@ -926,6 +928,8 @@ export default function SubjectClient({ initialPremiumStatus }: { initialPremium
       console.error("Error checking document access:", err);
       alert("Failed to check access limits.");
       return false;
+    } finally {
+      setCheckingAccessId(null);
     }
   };
 
@@ -1096,6 +1100,7 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                         </h4>
                       </div>
                       <button
+                        disabled={checkingAccessId !== null}
                         onClick={async () => {
                           const hasAccess = await checkDocumentAccess(material.id, material.title || "Study Material");
                           if (hasAccess) {
@@ -1104,9 +1109,9 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                             setActivePdfTitle(material.title || "Study Material");
                           }
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-brand/10 hover:bg-brand border border-brand/20 text-brand hover:text-brand-charcoal text-[10px] font-bold uppercase tracking-wider transition-all shrink-0"
+                        className="px-3 py-1.5 rounded-lg bg-brand/10 hover:bg-brand border border-brand/20 text-brand hover:text-brand-charcoal text-[10px] font-bold uppercase tracking-wider transition-all shrink-0 disabled:opacity-50"
                       >
-                        Open
+                        {checkingAccessId === material.id ? "Opening..." : "Open"}
                       </button>
                     </div>
                   ))}
@@ -1176,6 +1181,7 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 w-full px-4">
                       {getUnitDbPdf(unit.num) ? (
                         <button
+                          disabled={checkingAccessId !== null}
                           onClick={async () => {
                             const pdf = getUnitDbPdf(unit.num);
                             if (pdf) {
@@ -1187,15 +1193,15 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                               }
                             }
                           }}
-                          className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(142,146,144,0.4)] w-auto max-w-[90%] truncate"
+                          className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(142,146,144,0.4)] w-auto max-w-[90%] truncate disabled:opacity-50"
                         >
-                          View PDF Notes
+                          {checkingAccessId === getUnitDbPdf(unit.num)?.id ? "Opening PDF..." : "View PDF Notes"}
                         </button>
                       ) : (
                         <button
                           onClick={() => handleDownload(unit.num, "notes", unit.title, unit.description)}
-                          disabled={downloadingFile !== null}
-                          className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(142,146,144,0.4)]"
+                          disabled={downloadingFile !== null || checkingAccessId !== null}
+                          className="px-6 py-2.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-wider uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(142,146,144,0.4)] disabled:opacity-50"
                         >
                           {downloadingFile === `${subjectName}_${unit.num}_notes` ? "Preparing Preview..." : "View Notes PDF (Mock)"}
                         </button>
@@ -1227,6 +1233,7 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                   {getUnitDbResource(unit.num, "questions") ? (
                     <button
+                      disabled={checkingAccessId !== null}
                       onClick={async () => {
                         const res = getUnitDbResource(unit.num, "questions");
                         if (res) {
@@ -1238,21 +1245,23 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                           }
                         }
                       }}
-                      className="py-3 px-4 rounded-xl text-center text-xs font-semibold uppercase tracking-wider border border-brand/40 bg-brand/5 text-brand hover:bg-brand hover:text-brand-charcoal transition-all"
+                      className="py-3 px-4 rounded-xl text-center text-xs font-semibold uppercase tracking-wider border border-brand/40 bg-brand/5 text-brand hover:bg-brand hover:text-brand-charcoal transition-all disabled:opacity-50"
                     >
-                      ❓ Questions (DB)
+                      {checkingAccessId === getUnitDbResource(unit.num, "questions")?.id ? "Opening..." : "❓ Questions (DB)"}
                     </button>
                   ) : (
                     <button
+                      disabled={downloadingFile !== null || checkingAccessId !== null}
                       onClick={() => handleDownload(unit.num, "questions", unit.title, unit.description)}
-                      className="py-3 px-4 rounded-xl text-center text-xs font-semibold uppercase tracking-wider border border-brand-border hover:border-brand/30 text-brand-cream/80 hover:text-brand transition-all"
+                      className="py-3 px-4 rounded-xl text-center text-xs font-semibold uppercase tracking-wider border border-brand-border hover:border-brand/30 text-brand-cream/80 hover:text-brand transition-all disabled:opacity-50"
                     >
-                      ❓ Important Questions
+                      {downloadingFile === `${subjectName}_${unit.num}_questions` ? "Preparing..." : "❓ Important Questions"}
                     </button>
                   )}
 
                   {getUnitDbResource(unit.num, "quiz") ? (
                     <button
+                      disabled={checkingAccessId !== null}
                       onClick={async () => {
                         const res = getUnitDbResource(unit.num, "quiz");
                         if (res) {
@@ -1264,16 +1273,17 @@ Generated dynamically on Pharma Paper. Distraction-Free Study Vault.`;
                           }
                         }
                       }}
-                      className="py-3 px-4 rounded-xl text-center text-xs font-semibold uppercase tracking-wider border border-brand/40 bg-brand/5 text-brand hover:bg-brand hover:text-brand-charcoal transition-all"
+                      className="py-3 px-4 rounded-xl text-center text-xs font-semibold uppercase tracking-wider border border-brand/40 bg-brand/5 text-brand hover:bg-brand hover:text-brand-charcoal transition-all disabled:opacity-50"
                     >
-                      📜 Mock Quiz (DB)
+                      {checkingAccessId === getUnitDbResource(unit.num, "quiz")?.id ? "Opening..." : "📜 Mock Quiz (DB)"}
                     </button>
                   ) : (
                     <button
+                      disabled={downloadingFile !== null || checkingAccessId !== null}
                       onClick={() => handleDownload(unit.num, "quiz", unit.title, unit.description)}
-                      className="py-3 px-4 rounded-xl text-center text-xs font-semibold uppercase tracking-wider border border-brand-border hover:border-brand/30 text-brand-cream/80 hover:text-brand transition-all"
+                      className="py-3 px-4 rounded-xl text-center text-xs font-semibold uppercase tracking-wider border border-brand-border hover:border-brand/30 text-brand-cream/80 hover:text-brand transition-all disabled:opacity-50"
                     >
-                      📜 Unit Mock Assessment
+                      {downloadingFile === `${subjectName}_${unit.num}_quiz` ? "Preparing..." : "📜 Unit Mock Assessment"}
                     </button>
                   )}
 

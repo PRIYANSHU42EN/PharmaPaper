@@ -124,7 +124,7 @@ export default function VideoUpgradeOverlay({ isOpen, onClose }: VideoUpgradeOve
         name: "PharmPaper LMS",
         description: plan === "video_pass" ? "Monthly Video Pass" : "Full Platform Access",
         order_id: order_id,
-        theme: { color: "#0582CA" },
+        theme: { color: "#888888" },
         prefill: {
           name: user?.fullName || "",
           email: user?.primaryEmailAddress?.emailAddress || "",
@@ -197,13 +197,13 @@ export default function VideoUpgradeOverlay({ isOpen, onClose }: VideoUpgradeOve
         ) : (
           <>
             {/* Lock icon */}
-            <div className="w-16 h-16 bg-[#0582CA]/10 border border-[#0582CA]/25 rounded-full flex items-center justify-center mb-4 text-[#0582CA] shadow-[0_0_20px_rgba(5,130,202,0.1)]">
+            <div className="w-16 h-16 bg-[#888888]/10 border border-[#888888]/25 rounded-full flex items-center justify-center mb-4 text-[#888888] shadow-[0_0_20px_rgba(136, 136, 136,0.1)]">
               <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24">
                 <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
               </svg>
             </div>
 
-            <span className="text-[10px] uppercase font-mono tracking-widest text-[#0582CA] mb-1">Preview Ended</span>
+            <span className="text-[10px] uppercase font-mono tracking-widest text-[#888888] mb-1">Preview Ended</span>
             <h2 className="font-bebas text-3xl md:text-4xl text-brand-cream uppercase tracking-wide mb-2">Watch Full Lecture</h2>
             <p className="text-xs text-brand-cream/50 mb-6 max-w-xs leading-normal">
               This B.Pharm / D.Pharm reference lecture requires a Video Pass or Premium Membership.
@@ -242,7 +242,7 @@ export default function VideoUpgradeOverlay({ isOpen, onClose }: VideoUpgradeOve
                   <button
                     disabled={loading}
                     onClick={() => handlePayment("full_access", 5000)}
-                    className="w-full py-3 px-4 rounded-xl bg-brand-subtle border border-[#0582CA]/30 hover:border-brand text-left flex items-center justify-between text-xs text-brand-cream transition-all hover:bg-[#0582CA]/15 disabled:opacity-50 cursor-pointer"
+                    className="w-full py-3 px-4 rounded-xl bg-brand-subtle border border-[#888888]/30 hover:border-brand text-left flex items-center justify-between text-xs text-brand-cream transition-all hover:bg-[#888888]/15 disabled:opacity-50 cursor-pointer"
                   >
                     <div>
                       <p className="font-semibold text-brand-cream flex items-center gap-1">
@@ -280,7 +280,7 @@ export default function VideoUpgradeOverlay({ isOpen, onClose }: VideoUpgradeOve
 
               <Link
                 href="/pricing"
-                className="text-[10px] text-[#0582CA] hover:text-brand uppercase font-mono tracking-widest transition-colors"
+                className="text-[10px] text-[#888888] hover:text-brand uppercase font-mono tracking-widest transition-colors"
               >
                 Compare All Pricing Plans →
               </Link>

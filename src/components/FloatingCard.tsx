@@ -7,9 +7,10 @@ interface FloatingCardProps {
   children?: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  badge?: "FREE" | "PRO";
 }
 
-export default function FloatingCard({ children, className = "", onClick }: FloatingCardProps) {
+export default function FloatingCard({ children, className = "", onClick, badge }: FloatingCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Motion values for normalized mouse positions (-0.5 to 0.5)
@@ -17,12 +18,12 @@ export default function FloatingCard({ children, className = "", onClick }: Floa
   const y = useMotionValue(0);
 
   // Smooth springs for tilt rotation
-  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [15, -15]), {
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [12, -12]), {
     damping: 25,
     stiffness: 150,
     mass: 0.6,
   });
-  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-15, 15]), {
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-12, 12]), {
     damping: 25,
     stiffness: 150,
     mass: 0.6,
@@ -50,8 +51,8 @@ export default function FloatingCard({ children, className = "", onClick }: Floa
   };
 
   const handleMouseEnter = () => {
-    scale.set(1.03);
-    z.set(30); // Z translation value for "lift"
+    scale.set(1.02);
+    z.set(20);
   };
 
   const handleMouseLeave = () => {
@@ -74,20 +75,34 @@ export default function FloatingCard({ children, className = "", onClick }: Floa
         scale,
         transformStyle: "preserve-3d",
       }}
-      className={`relative rounded-3xl border border-brand-border glass-panel overflow-hidden cursor-pointer select-none transition-shadow hover:shadow-[0_15px_40px_rgba(5,130,202,0.12)] ${className}`}
+      className={`relative rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] backdrop-blur-xl transition-all duration-300 hover:border-white/15 hover:shadow-[0_12px_30px_rgba(255,255,255,0.02)] cursor-pointer select-none overflow-hidden ${className}`}
     >
-      {/* Zero-gravity ambient sheen overlay */}
+      {/* Dynamic Sheen overlay */}
       <motion.div
         className="absolute inset-0 pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300 z-10"
         style={{
-          background: `radial-gradient(circle 200px at ${sheenX} ${sheenY}, rgba(5, 130, 202, 0.08), transparent)`,
+          background: `radial-gradient(circle 180px at ${sheenX} ${sheenY}, rgba(255, 255, 255, 0.05), transparent)`,
         }}
       />
+
+      {/* Floating Card Badge (FREE or PRO) */}
+      {badge && (
+        <span 
+          style={{ transform: "translateZ(15px)" }}
+          className={`absolute top-4 right-4 z-30 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold uppercase border tracking-wider select-none ${
+            badge === "PRO" 
+              ? "bg-white/10 text-white border-white/20" 
+              : "bg-white/[0.02] text-[#888888] border-white/5"
+          }`}
+        >
+          {badge}
+        </span>
+      )}
 
       {/* Floating internal content layer */}
       <div 
         style={{ 
-          transform: "translateZ(20px)",
+          transform: "translateZ(10px)",
           transformStyle: "preserve-3d" 
         }} 
         className="relative z-20 h-full w-full"

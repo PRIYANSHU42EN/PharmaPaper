@@ -1,6 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -37,6 +38,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { blocked, headers } = await checkRateLimit('like', userId);
+    if (blocked) {
+      return NextResponse.json(
+        { error: 'Too many actions. Please wait a minute.' },
+        { status: 429, headers }
+      );
+    }
+
     const body = await req.json();
     const { material_id } = body;
 
@@ -71,6 +80,14 @@ export async function DELETE(req: Request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { blocked, headers } = await checkRateLimit('like', userId);
+    if (blocked) {
+      return NextResponse.json(
+        { error: 'Too many actions. Please wait a minute.' },
+        { status: 429, headers }
+      );
     }
 
     const { searchParams } = new URL(req.url);

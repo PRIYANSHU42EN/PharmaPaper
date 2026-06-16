@@ -93,7 +93,7 @@ export default function TrialModal({ isOpen, onClose, onActivated }: TrialModalP
           email: user?.primaryEmailAddress?.emailAddress || "",
         },
         theme: {
-          color: "#0582CA",
+          color: "#888888",
         },
         handler: async function (response: any) {
           try {
@@ -159,14 +159,14 @@ export default function TrialModal({ isOpen, onClose, onActivated }: TrialModalP
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", duration: 0.5 }}
-            className="glass-panel border-brand-border bg-[#0B0B0F]/90 max-w-md w-full p-8 rounded-3xl text-center relative z-10 shadow-[0_10px_50px_rgba(5,130,202,0.15)] overflow-hidden"
+            className="glass-panel border-brand-border bg-[#0B0B0F]/90 max-w-md w-full p-8 rounded-3xl text-center relative z-10 shadow-[0_10px_50px_rgba(136, 136, 136,0.15)] overflow-hidden"
           >
             {/* Ambient background glow inside modal */}
             <div className="absolute -top-1/4 -right-1/4 w-40 h-40 ambient-brand-glow opacity-30 pointer-events-none" />
 
             {success ? (
               <div>
-                <div className="w-16 h-16 bg-brand-subtle border border-brand/30 text-brand rounded-full flex items-center justify-center text-3xl mx-auto mb-6 shadow-[0_0_15px_rgba(5,130,202,0.2)]">
+                <div className="w-16 h-16 bg-brand-subtle border border-brand/30 text-brand rounded-full flex items-center justify-center text-3xl mx-auto mb-6 shadow-[0_0_15px_rgba(136, 136, 136,0.2)]">
                   🎉
                 </div>
                 <h2 className="font-bebas text-3xl tracking-wide text-brand-cream uppercase mb-3">
@@ -177,7 +177,7 @@ export default function TrialModal({ isOpen, onClose, onActivated }: TrialModalP
                 </p>
                 <button
                   onClick={onClose}
-                  className="w-full py-3.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-widest uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(5,130,202,0.25)] hover:scale-[1.02]"
+                  className="w-full py-3.5 rounded-full bg-brand hover:bg-brand-dark text-brand-charcoal font-semibold text-xs tracking-widest uppercase transition-all duration-300 shadow-[0_4px_20px_rgba(136, 136, 136,0.25)] hover:scale-[1.02]"
                 >
                   Start Studying →
                 </button>

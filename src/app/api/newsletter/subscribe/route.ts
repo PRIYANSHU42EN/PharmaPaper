@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { emailSchema } from "@/lib/validators";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 /**
  * POST /api/newsletter/subscribe
@@ -15,6 +16,15 @@ import { emailSchema } from "@/lib/validators";
  */
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
+    const { blocked, headers } = await checkRateLimit("comment", ip);
+    if (blocked) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a minute." },
+        { status: 429, headers }
+      );
+    }
+
     const body = await req.json().catch(() => null);
     if (!body) {
       return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
