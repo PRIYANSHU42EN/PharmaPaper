@@ -8,7 +8,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 export async function GET(req: NextRequest) {
   try {
-    const authError = requireRole("admin");
+    const authError = await requireRole("admin");
     if (authError) return authError;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authError = requireRole("admin");
+    const authError = await requireRole("admin");
     if (authError) return authError;
 
     const body = await req.json();

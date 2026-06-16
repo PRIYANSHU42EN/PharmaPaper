@@ -28,7 +28,7 @@ export async function GET(
 
     // If profile is not public, ensure the requester is the owner
     if (!profile.is_public) {
-      const { userId: requesterId } = auth();
+      const { userId: requesterId } = await auth();
       if (requesterId !== id) {
         return error(403, "This profile is private");
       }

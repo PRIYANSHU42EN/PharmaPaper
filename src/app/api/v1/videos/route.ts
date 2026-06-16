@@ -9,7 +9,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 export async function GET(req: NextRequest) {
   try {
     // Auth is optional for public feed
-    const { userId } = auth();
+    const { userId } = await auth();
     const searchParams = req.nextUrl.searchParams;
     
     const course = searchParams.get("course");

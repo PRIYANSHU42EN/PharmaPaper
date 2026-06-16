@@ -9,7 +9,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const authError = requireRole("admin");
+    const authError = await requireRole("admin");
     if (authError) return authError;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const authError = requireRole("admin");
+    const authError = await requireRole("admin");
     if (authError) return authError;
 
     const body = await req.json();
@@ -83,7 +83,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const authError = requireRole("admin");
+    const authError = await requireRole("admin");
     if (authError) return authError;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);

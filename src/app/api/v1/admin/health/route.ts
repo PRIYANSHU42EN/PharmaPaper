@@ -4,7 +4,7 @@ import { success, error as apiError } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   try {
-    const authError = requireRole("admin");
+    const authError = await requireRole("admin");
     if (authError) return authError;
 
     // A real system health endpoint would ping Supabase, Redis, Resend, Clerk APIs

@@ -7,12 +7,12 @@ import { error } from "./api";
  * 
  * Example usage in API route:
  * ```ts
- * const authError = requireRole("admin");
+ * const authError = await requireRole("admin");
  * if (authError) return authError;
  * ```
  */
-export function requireRole(requiredRole: "admin" | "lecturer") {
-  const { sessionClaims, userId } = auth();
+export async function requireRole(requiredRole: "admin" | "lecturer") {
+  const { sessionClaims, userId } = await auth();
   
   if (!userId) {
     return error(401, "Unauthorized");

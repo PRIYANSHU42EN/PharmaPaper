@@ -8,7 +8,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) return apiError(401, "Unauthorized");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) return apiError(401, "Unauthorized");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);

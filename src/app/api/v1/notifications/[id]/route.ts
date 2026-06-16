@@ -11,7 +11,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) return apiError(401, "Unauthorized");
 
     const { id } = await params;
@@ -42,7 +42,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) return apiError(401, "Unauthorized");
 
     const { id } = await params;
