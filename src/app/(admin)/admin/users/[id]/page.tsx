@@ -56,7 +56,7 @@ export default function UserDetailPage() {
     try {
       const res = await fetch(`/api/v1/admin/users/${id}`, { method: "DELETE" });
       if (res.ok) {
-        router.push("/admin/users");
+        router.push("/users");
       }
     } catch (err) {
       console.error(err);
@@ -83,7 +83,7 @@ export default function UserDetailPage() {
       
       {/* Header Actions */}
       <div className="flex items-center gap-4 mb-8">
-        <Link href="/admin/users" className="p-2 bg-surface hover:bg-surface-2 rounded-lg text-muted transition-colors">
+        <Link href="/users" className="p-2 bg-surface hover:bg-surface-2 rounded-lg text-muted transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex-1">

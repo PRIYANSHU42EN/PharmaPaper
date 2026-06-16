@@ -4,11 +4,11 @@ import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { supabase, trackPdfView, trackPdfDownload, getSettings } from "../../lib/supabase";
+import { supabase, trackPdfView, trackPdfDownload, getSettings } from "@/lib/supabase";
 import { useUser } from "@clerk/nextjs";
-import InlinePDFViewer from "../../components/InlinePDFViewer";
-import PaywallModal from "../../components/PaywallModal";
-import VideoCard from "../../components/video/VideoCard";
+import InlinePDFViewer from "@/components/InlinePDFViewer";
+import PaywallModal from "@/components/PaywallModal";
+import VideoCard from "@/components/video/VideoCard";
 
 // Helper to generate highly realistic PCI syllabus units and topics dynamically based on subject name
 function getSubjectUnits(subjectName: string) {

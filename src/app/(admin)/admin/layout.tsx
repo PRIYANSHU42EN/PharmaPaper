@@ -18,17 +18,17 @@ import {
 import { useAuth } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
-  { name: "Overview", href: "/admin", icon: LayoutDashboard },
-  { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Content", href: "/admin/content", icon: FileText },
-  { name: "Videos", href: "/admin/content/videos", icon: Video },
-  { name: "Moderation", href: "/admin/moderation", icon: ShieldAlert },
-  { name: "Analytics", href: "/admin/analytics", icon: LineChart },
-  { name: "API Monitor", href: "/admin/api-monitor", icon: Activity },
-  { name: "Security", href: "/admin/security", icon: ShieldCheck },
-  { name: "Database", href: "/admin/database", icon: Database },
-  { name: "Health", href: "/admin/health", icon: HeartPulse },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Overview", href: "/", icon: LayoutDashboard },
+  { name: "Users", href: "/users", icon: Users },
+  { name: "Content", href: "/content", icon: FileText },
+  { name: "Videos", href: "/content/videos", icon: Video },
+  { name: "Moderation", href: "/moderation", icon: ShieldAlert },
+  { name: "Analytics", href: "/analytics", icon: LineChart },
+  { name: "API Monitor", href: "/api-monitor", icon: Activity },
+  { name: "Security", href: "/security", icon: ShieldCheck },
+  { name: "Database", href: "/database", icon: Database },
+  { name: "Health", href: "/health", icon: HeartPulse },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             
             // Special exact match for Overview to prevent it highlighting on other routes
-            const isReallyActive = item.href === "/admin" ? pathname === "/admin" : isActive;
+            const isReallyActive = item.href === "/" ? pathname === "/" : isActive;
 
             return (
               <Link

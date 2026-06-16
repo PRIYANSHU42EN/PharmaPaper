@@ -9,7 +9,7 @@ export default function ContentManagementPage() {
 
   const TABS = [
     { id: "materials", name: "Materials", icon: FileText },
-    { id: "videos", name: "Videos", icon: Video, href: "/admin/content/videos" },
+    { id: "videos", name: "Videos", icon: Video, href: "/content/videos" },
     { id: "subjects", name: "Subjects", icon: BookOpen },
     { id: "playlists", name: "Playlists", icon: ListVideo },
   ];

@@ -2,7 +2,6 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const isAdminRoute = createRouteMatcher(['/admin(.*)', '/api/admin(.*)']);
 const isLecturerRoute = createRouteMatcher(['/lecturer(.*)', '/api/lecturer(.*)']);
 
 const isPublicRoute = createRouteMatcher([
@@ -35,29 +34,43 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     const { userId, sessionClaims } = await auth();
     const claims = sessionClaims as ClerkSessionClaims | null;
     const role = claims?.metadata?.role;
+    const url = req.nextUrl;
+
+    const hostname = req.headers.get('host') || '';
+    const searchParams = req.nextUrl.searchParams.toString();
+    const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ''}`;
+
+    // Skip rewrites for API routes and Next.js internals
+    if (url.pathname.startsWith('/api') || url.pathname.startsWith('/_next')) {
+      // API routes shouldn't be rewritten structurally, but we still need auth guards
+      if (url.pathname.startsWith('/api/v1/admin')) {
+        if (!userId || role !== 'admin') {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+      }
+      return NextResponse.next();
+    }
+
+    const isAdminDomain = hostname.startsWith('admin.');
+    const isAppDomain = hostname.startsWith('app.');
 
     // ── Admin guard ───────────────────────────────────────────────────────────
-    if (isAdminRoute(req)) {
+    if (isAdminDomain) {
       if (!userId) {
+        // Redirect to login (assuming login is on marketing or app domain, but typically handled by Clerk on same domain)
         return NextResponse.redirect(new URL('/login', req.url));
       }
       if (role !== 'admin') {
-        return NextResponse.redirect(new URL('/', req.url));
+        // If not admin, boot them to the student app
+        return NextResponse.redirect(new URL('http://app.pharmpaper.com/', req.url)); // adjust local dev host handling if needed
       }
     }
 
     // ── Lecturer guard ────────────────────────────────────────────────────────
     if (isLecturerRoute(req)) {
-      const pathname = req.nextUrl.pathname;
+      if (url.pathname === '/api/lecturer/subscribe') return NextResponse.next();
 
-      // Public lecturer subscription endpoint — skip auth
-      if (pathname === '/api/lecturer/subscribe') {
-        return;
-      }
-
-      if (!userId) {
-        return NextResponse.redirect(new URL('/login', req.url));
-      }
+      if (!userId) return NextResponse.redirect(new URL('/login', req.url));
 
       if (role !== 'lecturer' && role !== 'admin') {
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
@@ -67,49 +80,46 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
         if (supabaseUrl && supabaseServiceKey) {
           try {
             const supabase = createClient(supabaseUrl, supabaseServiceKey);
-            const { data } = await supabase
-              .from('lecturers')
-              .select('id')
-              .eq('user_id', userId)
-              .maybeSingle();
+            const { data } = await supabase.from('lecturers').select('id').eq('user_id', userId).maybeSingle();
             if (data) isLecturer = true;
-          } catch (e: unknown) {
-            const msg = e instanceof Error ? e.message : String(e);
-            console.error('Middleware lecturer check failed:', msg);
-          }
+          } catch (e: unknown) {}
         }
 
-        if (!isLecturer) {
-          return NextResponse.redirect(new URL('/dashboard', req.url));
-        }
+        if (!isLecturer) return NextResponse.redirect(new URL('/dashboard', req.url));
       }
     }
 
-    // ── Unauthenticated access to protected routes ────────────────────────────
-    if (!isPublicRoute(req) && !userId) {
+    // ── Unauthenticated access to protected routes (Student App) ──────────────
+    if (isAppDomain && !isPublicRoute(req) && !userId) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
+
+    // ── Rewrites ──────────────────────────────────────────────────────────────
+    if (isAdminDomain) {
+      // Rewrite admin.domain.com/dashboard to /admin/dashboard
+      return NextResponse.rewrite(new URL(`/admin${path === '/' ? '' : path}`, req.url));
+    }
+
+    if (isAppDomain) {
+      // Rewrite app.domain.com/dashboard to /app/dashboard
+      return NextResponse.rewrite(new URL(`/app${path === '/' ? '' : path}`, req.url));
+    }
+
+    // Marketing domain falls through to standard routing
+    return NextResponse.next();
+
   } catch (innerError: unknown) {
-    const msg = innerError instanceof Error ? innerError.message : String(innerError);
-    console.error('Middleware runtime error:', msg);
+    console.error('Middleware runtime error:', innerError);
     return new NextResponse(
-      JSON.stringify({
-        error: 'Service configuration error. Please try again later.',
-        code: 'MIDDLEWARE_ERROR',
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ error: 'Service configuration error.', code: 'MIDDLEWARE_ERROR' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 });
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     '/((?!_next|[^?]*\\.[\\w]+$|_next/image|favicon.ico).*)',
-    // Always run for API routes
     '/(api|trpc)(.*)',
   ],
 };

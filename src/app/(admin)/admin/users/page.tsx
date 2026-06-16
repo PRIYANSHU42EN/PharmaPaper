@@ -134,7 +134,7 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link 
-                        href={`/admin/users/${user.id}`}
+                        href={`/users/${user.id}`}
                         className="p-2 text-muted hover:text-white hover:bg-surface rounded transition-colors inline-block"
                       >
                         <MoreVertical className="w-4 h-4" />
