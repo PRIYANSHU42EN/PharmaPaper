@@ -6,8 +6,9 @@ import { success, error as apiError } from "@/lib/api";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const authError = requireRole("admin");
     if (authError) return authError;
 
@@ -29,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         rejection_reason: action === "reject" ? reason : null,
         is_published: action === "approve"
       })
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single();
 
@@ -59,7 +60,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     await supabase.from("admin_activity_logs").insert({
       admin_id: "admin",
       action: action === "approve" ? "APPROVE_VIDEO" : "REJECT_VIDEO",
-      details: { video_id: params.id, reason }
+      details: { video_id: id, reason }
     });
 
     return success({ message: `Video ${status} successfully`, video });

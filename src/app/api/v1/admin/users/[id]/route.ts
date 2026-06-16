@@ -6,8 +6,9 @@ import { success, error as apiError } from "@/lib/api";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const authError = requireRole("admin");
     if (authError) return authError;
 
@@ -15,9 +16,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     
     // Fetch user details + profile + payments + audit logs
     const [userRes, paymentsRes, logsRes] = await Promise.all([
-      supabase.from("users").select("*, profiles(*)").eq("id", params.id).single(),
-      supabase.from("payments").select("*").eq("user_id", params.id).order("created_at", { ascending: false }),
-      supabase.from("audit_logs").select("*").eq("record_id", params.id).order("created_at", { ascending: false }).limit(20)
+      supabase.from("users").select("*, profiles(*)").eq("id", id).single(),
+      supabase.from("payments").select("*").eq("user_id", id).order("created_at", { ascending: false }),
+      supabase.from("audit_logs").select("*").eq("record_id", id).order("created_at", { ascending: false }).limit(20)
     ]);
 
     if (userRes.error || !userRes.data) {
@@ -36,8 +37,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const authError = requireRole("admin");
     if (authError) return authError;
 
@@ -56,7 +58,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const { error: updateError } = await supabase
       .from("users")
       .update(updates)
-      .eq("id", params.id);
+      .eq("id", id);
 
     if (updateError) {
       console.error("Failed to update user:", updateError);
@@ -67,7 +69,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     await supabase.from("admin_activity_logs").insert({
       admin_id: "admin", // Ideally from auth()
       action: "UPDATE_USER",
-      details: { target_user: params.id, updates }
+      details: { target_user: id, updates }
     });
 
     return success({ message: "User updated successfully" });
@@ -78,8 +80,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const authError = requireRole("admin");
     if (authError) return authError;
 
@@ -89,7 +92,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const { error: deleteError } = await supabase
       .from("profiles")
       .update({ deleted_at: new Date().toISOString() })
-      .eq("user_id", params.id);
+      .eq("user_id", id);
 
     if (deleteError) {
       return apiError(500, "Failed to delete user");
@@ -98,7 +101,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     await supabase.from("admin_activity_logs").insert({
       admin_id: "admin",
       action: "DELETE_USER",
-      details: { target_user: params.id }
+      details: { target_user: id }
     });
 
     return success({ message: "User deleted successfully" });
