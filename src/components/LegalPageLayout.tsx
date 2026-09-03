@@ -34,7 +34,6 @@ const itemVariants = {
 const legalNav = [
   { href: "/terms", label: "Terms" },
   { href: "/privacy", label: "Privacy" },
-  { href: "/refund", label: "Refund" },
   { href: "/contact", label: "Contact" },
 ];
 

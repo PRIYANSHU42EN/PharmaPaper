@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Suspense } from "react";
-import AnalyticsTracker from "@/components/AnalyticsTracker";
 import { validateEnv } from "@/lib/env";
-import TrialBanner from "@/components/TrialBanner";
-import PWALoader from "@/components/PWALoader";
 import "./globals.css";
 
 validateEnv();
@@ -42,11 +38,6 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ClerkProvider afterSignOutUrl="/">
-          <PWALoader />
-          <Suspense fallback={null}>
-            <AnalyticsTracker />
-          </Suspense>
-          <TrialBanner />
           {children}
         </ClerkProvider>
       </body>

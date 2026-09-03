@@ -8,7 +8,7 @@ export default function LoginPage() {
       <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] ambient-brand-glow pointer-events-none opacity-30" style={{ background: "radial-gradient(circle, rgba(136, 136, 136, 0.05) 0%, rgba(23, 23, 23, 0) 70%)" }} />
 
       <div className="relative z-10">
-        <SignIn routing="hash" signUpUrl="/signup" />
+        <SignIn routing="hash" />
       </div>
     </div>
   );

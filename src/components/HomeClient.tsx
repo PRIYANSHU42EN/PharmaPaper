@@ -20,11 +20,9 @@ import {
 } from "lucide-react";
 
 import FloatingCard from "@/components/FloatingCard";
-import NavbarBadge from "@/components/NavbarBadge";
 import Footer from "@/components/Footer";
 import { SyllabusData } from "@/lib/db";
 import { getSettings, supabase } from "@/lib/supabase";
-import BlurText from "@/components/BlurText";
 
 // Counter hook utilizing requestAnimationFrame
 function useCountUp(target: number, durationMs: number = 2000, trigger: boolean = false) {
@@ -216,30 +214,16 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
           <a href="#zone-lecturers" className="hover:text-white transition-colors duration-200">
             Lecturers
           </a>
-          <a href="/videos" className="hover:text-white transition-colors duration-200">
-            Videos
-          </a>
-          <a href="/pricing" className="text-[#888888] hover:text-[#fafafa] transition-colors duration-200 font-semibold">
-            Premium
-          </a>
         </nav>
 
         <div className="flex items-center gap-4">
           <Show when="signed-out">
-            <SignInButton mode="modal">
-              <button className="text-white/70 hover:text-white font-medium text-sm transition-colors duration-200 cursor-pointer">
-                Login
-              </button>
-            </SignInButton>
-            <SignUpButton mode="modal">
-              <button className="rounded-full px-5 py-2 text-white font-bold text-xs uppercase tracking-wider border border-white/10 hover:border-white/30 transition-all duration-200 cursor-pointer">
-                Start Trial
-              </button>
-            </SignUpButton>
+            <Link href="/app/login" className="text-white/70 hover:text-white font-medium text-sm transition-colors duration-200 cursor-pointer">
+              Login
+            </Link>
           </Show>
           <Show when="signed-in">
             <div className="flex items-center gap-3.5">
-              <NavbarBadge />
               <UserButton appearance={{ elements: { avatarBox: "w-8 h-8" } }} />
             </div>
           </Show>
@@ -265,8 +249,6 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
             <a href="#zone-hero" onClick={() => setMobileMenuOpen(false)} className="text-white text-base font-semibold py-1">Home</a>
             <a href="#zone-workspace" onClick={() => setMobileMenuOpen(false)} className="text-white/70 text-base font-medium py-1">Syllabus</a>
             <a href="#zone-lecturers" onClick={() => setMobileMenuOpen(false)} className="text-white/70 text-base font-medium py-1">Lecturers</a>
-            <a href="/videos" className="text-white/70 text-base font-medium py-1">Videos</a>
-            <a href="/pricing" className="text-white/70 text-base font-medium py-1">Pricing</a>
           </motion.div>
         )}
       </AnimatePresence>
@@ -411,7 +393,7 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
               >
                 <Link href={`/notes?sem=${sem.id}&type=${courseType}`} className="block">
                   <FloatingCard
-                    badge={sem.id === "sem7" || sem.id === "sem8" ? "PRO" : "FREE"}
+                    badge="FREE"
                     className="p-5 flex flex-col justify-between aspect-square cursor-pointer hover:bg-white/5 transition-colors duration-300 border border-white/5 animate-subtle-float"
                   >
                     <div className="flex flex-col h-full justify-between text-left">
@@ -524,10 +506,9 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
             </span>
           </motion.div>
           
-          <BlurText 
-            text="Everything you need in one portal." 
-            className="text-4xl md:text-5xl lg:text-6xl font-heading italic tracking-tight leading-[0.9] justify-center text-white"
-          />
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading italic tracking-tight leading-[0.9] text-center text-white">
+            Everything you need in one portal.
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -627,10 +608,9 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
             </span>
           </motion.div>
           
-          <BlurText 
-            text="Engineered for pharmacy results." 
-            className="text-4xl md:text-5xl lg:text-6xl font-heading italic tracking-tight leading-[0.9] justify-center text-white"
-          />
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading italic tracking-tight leading-[0.9] text-center text-white">
+            Engineered for pharmacy results.
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -696,10 +676,9 @@ export default function HomeClient({ syllabusData }: HomeClientProps) {
             </span>
           </motion.div>
 
-          <BlurText 
-            text="Join the vault." 
-            className="text-5xl md:text-6xl lg:text-7xl font-heading italic tracking-tight leading-[0.85] justify-center text-white mb-6"
-          />
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-heading italic tracking-tight leading-[0.85] text-center text-white mb-6">
+            Join the vault.
+          </h2>
 
           <motion.p
             initial={mounted ? { opacity: 0, y: 20 } : false}

@@ -18,17 +18,10 @@ import {
 import { useAuth } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
-  { name: "Overview", href: "/", icon: LayoutDashboard },
-  { name: "Users", href: "/users", icon: Users },
-  { name: "Content", href: "/content", icon: FileText },
-  { name: "Videos", href: "/content/videos", icon: Video },
-  { name: "Moderation", href: "/moderation", icon: ShieldAlert },
-  { name: "Analytics", href: "/analytics", icon: LineChart },
-  { name: "API Monitor", href: "/api-monitor", icon: Activity },
-  { name: "Security", href: "/security", icon: ShieldCheck },
-  { name: "Database", href: "/database", icon: Database },
-  { name: "Health", href: "/health", icon: HeartPulse },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Overview", href: "/admin", icon: LayoutDashboard },
+  { name: "Content", href: "/admin/content", icon: FileText },
+  { name: "Moderation", href: "/admin/moderation", icon: ShieldAlert },
+  { name: "Analytics", href: "/admin/analytics", icon: LineChart },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -48,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar - 240px width */}
       <aside className="w-[240px] shrink-0 border-r border-white/5 bg-[#003554]/30 backdrop-blur-xl flex flex-col h-full sticky top-0 z-10">
         <div className="p-6 border-b border-white/5">
-          <Link href="/app" className="flex items-center gap-2">
+          <Link href="/admin" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center shadow-[0_0_15px_rgba(5,130,202,0.5)]">
               <ShieldCheck className="w-5 h-5 text-white" />
             </div>
@@ -62,10 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1 custom-scrollbar">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            
-            // Special exact match for Overview to prevent it highlighting on other routes
-            const isReallyActive = item.href === "/" ? pathname === "/" : isActive;
+            const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`));
 
             return (
               <Link
@@ -73,12 +63,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={`
                   flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
-                  ${isReallyActive 
+                  ${isActive 
                     ? "bg-brand/15 text-brand-light border-l-2 border-brand-light shadow-[inset_2px_0_0_0_#00A6FB]" 
                     : "text-slate-400 hover:bg-white/5 hover:text-slate-200 border-l-2 border-transparent"}
                 `}
               >
-                <Icon className={`w-4 h-4 ${isReallyActive ? "text-brand-light" : "text-slate-500"}`} />
+                <Icon className={`w-4 h-4 ${isActive ? "text-brand-light" : "text-slate-500"}`} />
                 {item.name}
               </Link>
             );

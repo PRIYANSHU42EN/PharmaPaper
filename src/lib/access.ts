@@ -20,103 +20,13 @@ export interface AccessResult {
 }
 
 export async function getUserAccess(userId: string | null | undefined): Promise<AccessResult> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  // 1. Not logged in
-  if (!userId) {
-    return {
-      level: 'none',
-      canWatchVideos: false,
-      canReadPDFs: false,
-      canAccessPYQs: false,
-      canTakeExams: false,
-      canComment: false,
-      isTrial: false,
-    };
-  }
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    console.error("Missing Supabase configuration in access.ts");
-    return {
-      level: 'free',
-      canWatchVideos: false,
-      canReadPDFs: false,
-      canAccessPYQs: false,
-      canTakeExams: false,
-      canComment: false,
-      isTrial: false,
-    };
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-  // 2. Check active free trial status (Full Access)
-  const { data: trial } = await supabase
-    .from("trials")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (trial) {
-    const trialEndTime = new Date(trial.trial_end).getTime();
-    const now = Date.now();
-    if (trialEndTime > now) {
-      const daysLeft = Math.ceil((trialEndTime - now) / (1000 * 60 * 60 * 24));
-      return {
-        level: 'trial',
-        canWatchVideos: true,
-        canReadPDFs: true,
-        canAccessPYQs: true,
-        canTakeExams: true,
-        canComment: true,
-        isTrial: true,
-        daysLeft,
-        expiresAt: trial.trial_end,
-      };
-    }
-  }
-
-  // 3. Check paid access status
-  const { data: payment } = await supabase
-    .from("payments")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("status", "paid")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (payment) {
-    const expiresAtMs = payment.expires_at ? new Date(payment.expires_at).getTime() : null;
-    if (!expiresAtMs || expiresAtMs > Date.now()) {
-      // Determine access level (backwards-compatible check)
-      let level: AccessLevel = 'premium';
-      if (payment.access_level === 'video_only' || payment.plan_type === 'video_monthly') {
-        level = 'video_only';
-      }
-
-      return {
-        level,
-        canWatchVideos: true,
-        canReadPDFs: level === 'premium',
-        canAccessPYQs: level === 'premium',
-        canTakeExams: level === 'premium',
-        canComment: true,
-        isTrial: false,
-        expiresAt: payment.expires_at,
-      };
-    }
-  }
-
-  // 4. Logged in, but no active subscription/trial
   return {
-    level: 'free',
-    canWatchVideos: false,
-    canReadPDFs: false,
-    canAccessPYQs: false,
-    canTakeExams: false,
-    canComment: false,
+    level: userId ? 'free' : 'none',
+    canWatchVideos: true,
+    canReadPDFs: true,
+    canAccessPYQs: true,
+    canTakeExams: true,
+    canComment: !!userId,
     isTrial: false,
   };
 }

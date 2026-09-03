@@ -22,17 +22,17 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-6 flex flex-col items-center gap-6 relative z-10">
         {/* Core Navigation Links */}
         <div className="flex flex-wrap gap-6 md:gap-10 justify-center text-sm text-[#fafafa]/80 font-medium">
-          <Link href="/notes" className="hover:text-[#888888] transition-colors duration-200">
-            Notes
+          <Link href="/" className="hover:text-[#888888] transition-colors duration-200">
+            Home
           </Link>
-          <Link href="/pyq" className="hover:text-[#888888] transition-colors duration-200">
-            Question Papers
+          <Link href="/contact" className="hover:text-[#888888] transition-colors duration-200">
+            Contact Us
           </Link>
-          <Link href="/videos" className="hover:text-[#888888] transition-colors duration-200">
-            Video Lectures
+          <Link href="/terms" className="hover:text-[#888888] transition-colors duration-200">
+            Terms of Service
           </Link>
-          <Link href="/pricing" className="text-[#888888] hover:text-[#aaaaaa] font-semibold transition-colors duration-200">
-            Premium Plans
+          <Link href="/privacy" className="hover:text-[#888888] transition-colors duration-200">
+            Privacy Policy
           </Link>
         </div>
 
@@ -43,9 +43,6 @@ export default function Footer() {
           </Link>
           <Link href="/privacy" className="hover:text-white/60 transition-colors duration-200">
             Privacy Policy
-          </Link>
-          <Link href="/refund" className="hover:text-white/60 transition-colors duration-200">
-            Cancellation & Refund Policy
           </Link>
           <Link href="/contact" className="hover:text-white/60 transition-colors duration-200">
             Contact Us / Support
