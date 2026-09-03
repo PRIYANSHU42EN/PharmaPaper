@@ -97,20 +97,25 @@ export async function checkRateLimit(
   identifier: string
 ): Promise<{ blocked: true; headers: Record<string, string> } | { blocked: false; headers?: undefined }> {
   const limiters = getRateLimiters();
-  const limiter = limiters[limiterName];
-  const { success, limit, reset } = await limiter.limit(identifier);
+  try {
+    const limiter = limiters[limiterName];
+    const { success, limit, reset } = await limiter.limit(identifier);
 
-  if (!success) {
-    return {
-      blocked: true,
-      headers: {
-        'X-RateLimit-Limit': limit.toString(),
-        'X-RateLimit-Remaining': '0',
-        'X-RateLimit-Reset': reset.toString(),
-        'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
-      },
-    };
+    if (!success) {
+      return {
+        blocked: true,
+        headers: {
+          'X-RateLimit-Limit': limit.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': reset.toString(),
+          'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
+        },
+      };
+    }
+
+    return { blocked: false };
+  } catch (err) {
+    console.warn('Rate limiter unreachable, failing open:', err);
+    return { blocked: false };
   }
-
-  return { blocked: false };
 }
