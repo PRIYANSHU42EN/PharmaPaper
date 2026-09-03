@@ -142,20 +142,86 @@ export const refundPolicy: LegalPageData = {
 // PAGE 4 — CONTACT US
 export const contactUs: LegalPageData = {
   title: "Contact Us",
-  lastUpdated: "June 2026",
-  intro: "We'd love to hear from you! If you have any questions about our study materials, need help with your account, or want to report an issue — we're here to help.",
+  lastUpdated: "September 2026",
+  intro: "We'd love to hear from you! If you have any questions about our pharmacy notes, want to contribute study materials, or need help — we're here to help.",
   sections: [
     {
       heading: "Contact Information",
       content: [
-        "📧 Email: support@pharmapaper.com",
-        "📍 India",
+        "📧 Email: support@pharmdbm.com",
+        "📍 Telegram Community: @pharmdbm",
         "⏰ Response time: Within 24 hours"
       ]
     }
   ],
   contactBlock: {
-    email: "support@pharmapaper.com",
+    email: "support@pharmdbm.com",
+    city: "India"
+  }
+};
+
+// PAGE 5 — ABOUT US
+export const aboutUs: LegalPageData = {
+  title: "About Pharmdbm",
+  lastUpdated: "September 2026",
+  intro: "Pharmdbm is your gateway to excellence in pharmacy education. We are dedicated to providing high-quality, syllabus-aligned lecture notes, unit summaries, and study resources for B.Pharm and D.Pharm students across India.",
+  sections: [
+    {
+      heading: "Our Mission",
+      content: [
+        "Pharmacy education demands deep theoretical comprehension alongside clinical and industrial mastery. Pharmdbm simplifies complex topics by organizing lecture materials strictly according to the Pharmacy Council of India (PCI) syllabus.",
+        "We believe that every pharmacy student deserves access to clean, distraction-free, and high-yield notes without financial barriers."
+      ]
+    },
+    {
+      heading: "Curriculum Coverage",
+      content: [
+        "Bachelor of Pharmacy (B.Pharm): All 8 semesters from foundational anatomy and pharmaceutics to advanced pharmacotherapy and regulatory affairs.",
+        "Diploma in Pharmacy (D.Pharm): 1st Year and 2nd Year standardized syllabus notes."
+      ]
+    },
+    {
+      heading: "Community Driven",
+      content: [
+        "Our vibrant student community actively collaborates on Telegram and WhatsApp to share exam updates, GPAT strategies, and subject insights."
+      ]
+    }
+  ],
+  contactBlock: {
+    email: "support@pharmdbm.com",
+    city: "India",
+    web: "pharmdbm.com"
+  }
+};
+
+// PAGE 6 — DISCLAIMER
+export const disclaimer: LegalPageData = {
+  title: "Disclaimer",
+  lastUpdated: "September 2026",
+  intro: "Please review the educational disclaimer governing the use of materials on Pharmdbm.",
+  sections: [
+    {
+      heading: "Educational Purpose Only",
+      content: [
+        "The notes, articles, and downloadable PDFs on Pharmdbm are curated exclusively for academic and educational review purposes by pharmacy students.",
+        "They are designed as supplementary revision guides and are not a substitute for official university textbooks, professor lectures, or certified clinical pharmacopoeias."
+      ]
+    },
+    {
+      heading: "Accuracy & Examination Standards",
+      content: [
+        "While every effort is made to maintain factual precision in accordance with PCI guidelines, students must verify regional university exam regulations, syllabus modifications, and laboratory protocols independently."
+      ]
+    },
+    {
+      heading: "Medical Advice Disclaimer",
+      content: [
+        "The pharmaceutical chemistry and pharmacology contents hosted on this platform are for academic study and do not constitute clinical, diagnostic, or medical advice."
+      ]
+    }
+  ],
+  contactBlock: {
+    email: "support@pharmdbm.com",
     city: "India"
   }
 };

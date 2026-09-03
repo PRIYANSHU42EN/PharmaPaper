@@ -1,11 +1,22 @@
-import { fetchSyllabusData } from "@/lib/db";
-import HomeClient from "@/components/HomeClient";
+import { getSemesters } from "@/lib/supabase";
+import Hero from "@/components/Hero";
+import SemesterGrid from "@/components/SemesterGrid";
 
-// Force dynamic rendering to ensure the data is fetched fresh from the database
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const syllabusData = await fetchSyllabusData();
+  const [bpharmSemesters, dpharmSemesters] = await Promise.all([
+    getSemesters("bpharm"),
+    getSemesters("dpharm"),
+  ]);
 
-  return <HomeClient syllabusData={syllabusData} />;
+  return (
+    <div className="flex flex-col">
+      <Hero />
+      <SemesterGrid
+        bpharmSemesters={bpharmSemesters}
+        dpharmSemesters={dpharmSemesters}
+      />
+    </div>
+  );
 }

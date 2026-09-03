@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bebas_Neue, Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { validateEnv } from "@/lib/env";
+import PublicShell from "@/components/PublicShell";
 import "./globals.css";
 
 validateEnv();
@@ -20,10 +21,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PharmPaper | Your Complete Pharmacy Study Vault",
-  description: "Access all B Pharm and D Pharm semester notes, previous year question papers, and study materials in one clean, distraction-free platform.",
-  keywords: ["PharmPaper", "pharmacy notes", "B Pharm notes", "D Pharm notes", "pharmacy papers", "study vault"],
-  manifest: "/manifest.json",
+  title: "Pharmdbm — Your Gateway to Excellence in Pharmacy Education",
+  description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
+  keywords: ["Pharmdbm", "pharmacy notes", "B.Pharm notes", "D.Pharm notes", "pharmacy lecture notes"],
 };
 
 export default function RootLayout({
@@ -34,11 +34,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body
-        className={`${bebasNeue.variable} ${inter.variable} min-h-full bg-[#171717] text-[#fafafa] font-sans antialiased overflow-x-hidden`}
+        className={`${bebasNeue.variable} ${inter.variable} min-h-full bg-[#F9FAFB] text-slate-900 font-sans antialiased`}
         suppressHydrationWarning
       >
         <ClerkProvider afterSignOutUrl="/">
-          {children}
+          <PublicShell>{children}</PublicShell>
         </ClerkProvider>
       </body>
     </html>
