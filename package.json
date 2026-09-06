@@ -36,5 +36,11 @@
     "tailwindcss": "^4",
     "ts-jest": "^29.4.11",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
