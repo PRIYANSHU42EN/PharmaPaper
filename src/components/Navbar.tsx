@@ -1,198 +1,279 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
-import NavbarBadge from "@/components/NavbarBadge";
-import { getSettings } from "@/lib/supabase";
+import { BookOpen, ChevronDown, Menu, X, GraduationCap, FileText, Info, Shield, Mail, Sparkles } from "lucide-react";
 
-interface NavbarProps {
-  /** When true the navbar is transparent (for pages with a background). Default: glass pill. */
-  transparent?: boolean;
-  /** Override site name (falls back to platform_settings). */
-  siteName?: string;
-}
+export default function Navbar() {
+  const [bpharmOpen, setBpharmOpen] = useState(false);
+  const [dpharmOpen, setDpharmOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-function renderLogo(name: string) {
-  const parts = name.trim().split(" ");
-  if (parts.length <= 1) return <span>{name.toUpperCase()}</span>;
-  return (
-    <>
-      {parts[0].toUpperCase()}
-      <span className="text-brand"> {parts.slice(1).join(" ").toUpperCase()}</span>
-    </>
-  );
-}
+  const bpharmRef = useRef<HTMLDivElement>(null);
+  const dpharmRef = useRef<HTMLDivElement>(null);
 
-/**
- * Shared navigation bar used across all pages except the Hero landing section
- * (which has its own inline nav for scroll-animation reasons).
- *
- * Usage:
- *   import Navbar from "@/components/Navbar";
- *   <Navbar />
- *   <Navbar transparent siteName="PharmPaper" />
- */
-export default function Navbar({ transparent = false, siteName: propSiteName }: NavbarProps) {
-  const [siteName, setSiteName] = useState(propSiteName ?? "Pharma Paper");
-
+  // Close dropdowns when clicking outside
   useEffect(() => {
-    if (propSiteName) return; // caller provided a name, skip fetch
-    getSettings().then((s) => {
-      if (s?.sitename) setSiteName(s.sitename);
-    });
-  }, [propSiteName]);
+    function handleClickOutside(e: MouseEvent) {
+      if (bpharmRef.current && !bpharmRef.current.contains(e.target as Node)) {
+        setBpharmOpen(false);
+      }
+      if (dpharmRef.current && !dpharmRef.current.contains(e.target as Node)) {
+        setDpharmOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const [showMegaMenu, setShowMegaMenu] = useState(false);
-
-  const bpharmSubjects = [
-    { name: "Human Anatomy & Physiology I", sem: "sem1", type: "bpharm" },
-    { name: "Pharmaceutics I", sem: "sem1", type: "bpharm" },
-    { name: "Biochemistry", sem: "sem2", type: "bpharm" },
-    { name: "Pathophysiology", sem: "sem2", type: "bpharm" },
-    { name: "Pharmaceutical Microbiology", sem: "sem3", type: "bpharm" },
-    { name: "Pharmacology I", sem: "sem4", type: "bpharm" },
-    { name: "Medicinal Chemistry II", sem: "sem5", type: "bpharm" },
-    { name: "Biopharmaceutics & Pharmacokinetics", sem: "sem6", type: "bpharm" }
+  const bpharmSemesters = [
+    { name: "1st Semester", slug: "1st-semester" },
+    { name: "2nd Semester", slug: "2nd-semester" },
+    { name: "3rd Semester", slug: "3rd-semester" },
+    { name: "4th Semester", slug: "4th-semester" },
+    { name: "5th Semester", slug: "5th-semester" },
+    { name: "6th Semester", slug: "6th-semester" },
+    { name: "7th Semester", slug: "7th-semester" },
+    { name: "8th Semester", slug: "8th-semester" },
   ];
 
-  const dpharmSubjects = [
-    { name: "Pharmaceutics", sem: "year1", type: "dpharm" },
-    { name: "Pharmaceutical Chemistry", sem: "year1", type: "dpharm" },
-    { name: "Pharmacology", sem: "year2", type: "dpharm" },
-    { name: "Pharmacy Law & Ethics", sem: "year2", type: "dpharm" }
+  const dpharmYears = [
+    { name: "1st Year", slug: "1st-year" },
+    { name: "2nd Year", slug: "2nd-year" },
   ];
-
-  const base = transparent
-    ? "w-full h-16 flex items-center justify-between px-6 md:px-12"
-    : "fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl h-16 glass-panel border-[#222222] rounded-full flex items-center justify-between px-8 z-50";
 
   return (
-    <header id="main-navbar" className={base}>
-      {/* Logo */}
-      <Link href="/" className="flex items-center gap-2 shrink-0" aria-label="PharmPaper home">
-        <span className="w-3 h-3 rounded-full bg-[#888888] shadow-[0_0_10px_rgba(136,136,136,0.5)] animate-pulse" />
-        <span className="font-bebas text-2xl tracking-wider text-[#fafafa] font-bold">
-          {renderLogo(siteName)}
-        </span>
-      </Link>
-
-      {/* Desktop nav links */}
-      <nav
-        className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide text-[#fafafa]/70"
-        aria-label="Primary navigation"
-      >
-        <Link href="/notes" className="hover:text-[#888888] transition-colors duration-200">
-          Notes
-        </Link>
-        <Link href="/pyq" className="hover:text-[#888888] transition-colors duration-200">
-          Question Papers
-        </Link>
-        
-        {/* Hover Mega Menu */}
-        <div
-          className="relative"
-          onMouseEnter={() => setShowMegaMenu(true)}
-          onMouseLeave={() => setShowMegaMenu(false)}
-        >
-          <Link href="/videos" className="hover:text-[#888888] transition-colors duration-200 py-5 flex items-center gap-1">
-            Video Lectures
-            <svg
-              className={`w-3.5 h-3.5 transition-transform duration-300 ${showMegaMenu ? "rotate-180 text-[#888888]" : "text-[#fafafa]/50"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+    <header className="sticky top-0 z-50 bg-[#FBC02D] text-slate-900 shadow-md transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
+          {/* Brand Logo & Wordmark */}
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-900 text-[#FBC02D] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+              <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-slate-950">
+                Pharma<span className="text-blue-700">Paper</span>
+              </span>
+              <span className="hidden sm:inline-block text-[11px] font-medium text-slate-800 -mt-1 tracking-tight">
+                Your Gateway to Excellence in Pharmacy Education
+              </span>
+            </div>
           </Link>
 
-          {showMegaMenu && (
-            <div className="absolute top-[48px] left-1/2 -translate-x-1/2 w-[480px] glass-panel border border-[#222222] p-6 rounded-2xl shadow-[0_10px_50px_rgba(0,0,0,0.5)] z-[100] grid grid-cols-2 gap-6 transition-all duration-300">
-              {/* B.Pharm Column */}
-              <div>
-                <h4 className="text-[10px] text-[#888888] font-mono uppercase tracking-widest font-bold mb-3 border-b border-brand-border/30 pb-1">
-                  B.Pharm Lectures
-                </h4>
-                <ul className="flex flex-col gap-2">
-                  {bpharmSubjects.map((sub) => (
-                    <li key={sub.name}>
-                      <Link
-                        href={`/subject?name=${encodeURIComponent(sub.name)}&sem=${sub.sem}&type=${sub.type}`}
-                        className="text-xs text-[#fafafa]/75 hover:text-[#888888] transition-colors duration-150 block truncate font-medium"
-                      >
-                        {sub.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-sm font-semibold">
+            <Link 
+              href="/" 
+              className="px-3 py-2 rounded-lg text-slate-900 hover:bg-black/10 transition-colors"
+            >
+              Home
+            </Link>
 
-              {/* D.Pharm Column */}
-              <div>
-                <h4 className="text-[10px] text-[#888888] font-mono uppercase tracking-widest font-bold mb-3 border-b border-brand-border/30 pb-1">
-                  D.Pharm Lectures
-                </h4>
-                <ul className="flex flex-col gap-2">
-                  {dpharmSubjects.map((sub) => (
-                    <li key={sub.name}>
+            {/* BPHARM Dropdown */}
+            <div className="relative" ref={bpharmRef}>
+              <button
+                onClick={() => { setBpharmOpen(!bpharmOpen); setDpharmOpen(false); }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-900 hover:bg-black/10 transition-colors"
+                aria-expanded={bpharmOpen}
+              >
+                <span>B.PHARM</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${bpharmOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {bpharmOpen && (
+                <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                    Bachelor of Pharmacy
+                  </div>
+                  <div className="grid grid-cols-1 divide-y divide-slate-50">
+                    {bpharmSemesters.map(sem => (
                       <Link
-                        href={`/subject?name=${encodeURIComponent(sub.name)}&sem=${sub.sem}&type=${sub.type}`}
-                        className="text-xs text-[#fafafa]/75 hover:text-[#888888] transition-colors duration-150 block truncate font-medium"
+                        key={sem.slug}
+                        href={`/bpharm/${sem.slug}`}
+                        onClick={() => setBpharmOpen(false)}
+                        className="px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between transition-colors"
                       >
-                        {sub.name}
+                        <span>{sem.name}</span>
+                        <span className="text-xs text-slate-400">Notes &rarr;</span>
                       </Link>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-4 pt-3 border-t border-[#222222]/30">
-                  <Link
-                    href="/videos"
-                    className="text-[10px] text-[#888888] hover:text-[#aaaaaa] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
-                  >
-                    View Video Vault ➔
-                  </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <Link
-          href="/pricing"
-          className="text-[#888888] hover:text-[#aaaaaa] font-semibold transition-colors duration-200"
-        >
-          Go Premium
-        </Link>
-      </nav>
+            {/* DPHARM Dropdown */}
+            <div className="relative" ref={dpharmRef}>
+              <button
+                onClick={() => { setDpharmOpen(!dpharmOpen); setBpharmOpen(false); }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-slate-900 hover:bg-black/10 transition-colors"
+                aria-expanded={dpharmOpen}
+              >
+                <span>D.PHARM</span>
+                <ChevronDown className={`w-4 h-4 transition-transform ${dpharmOpen ? "rotate-180" : ""}`} />
+              </button>
 
-      {/* Auth buttons */}
-      <div className="flex items-center gap-3">
-        <Show when="signed-out">
-          <SignInButton mode="modal">
-            <button
-              id="navbar-signin-btn"
-              className="px-4 py-2 rounded-full text-[#fafafa]/80 hover:text-[#fafafa] border border-[#222222] hover:border-[#888888] font-semibold text-xs tracking-wider uppercase transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer"
+              {dpharmOpen && (
+                <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                    Diploma in Pharmacy
+                  </div>
+                  <div className="grid grid-cols-1 divide-y divide-slate-50">
+                    {dpharmYears.map(yr => (
+                      <Link
+                        key={yr.slug}
+                        href={`/dpharm/${yr.slug}`}
+                        onClick={() => setDpharmOpen(false)}
+                        className="px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 flex items-center justify-between transition-colors"
+                      >
+                        <span>{yr.name}</span>
+                        <span className="text-xs text-slate-400">Notes &rarr;</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Link 
+              href="/posts" 
+              className="px-3 py-2 rounded-lg text-slate-900 hover:bg-black/10 transition-colors"
             >
-              Sign In
-            </button>
-          </SignInButton>
-          <SignUpButton mode="modal">
-            <button
-              id="navbar-signup-btn"
-              className="hidden sm:block px-5 py-2 rounded-full bg-[#888888] hover:bg-[#aaaaaa] text-[#171717] font-semibold text-xs tracking-wider uppercase transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-[0_4px_20px_rgba(136,136,136,0.15)] cursor-pointer"
+              All Posts
+            </Link>
+
+            <Link 
+              href="/about" 
+              className="px-3 py-2 rounded-lg text-slate-900 hover:bg-black/10 transition-colors"
             >
-              Sign Up
-            </button>
-          </SignUpButton>
-        </Show>
-        <Show when="signed-in">
-          <div className="flex items-center gap-2">
-            <NavbarBadge />
-            <UserButton />
+              About Us
+            </Link>
+
+            <Link 
+              href="/privacy" 
+              className="px-3 py-2 rounded-lg text-slate-900 hover:bg-black/10 transition-colors"
+            >
+              Privacy
+            </Link>
+
+            <Link 
+              href="/contact" 
+              className="px-3 py-2 rounded-lg text-slate-900 hover:bg-black/10 transition-colors"
+            >
+              Contact Us
+            </Link>
+          </nav>
+
+          {/* Quick Access Portal Button */}
+          <div className="hidden lg:flex items-center gap-3">
+            <Link 
+              href="/app/login" 
+              className="px-4 py-2 bg-slate-900 text-white rounded-xl font-medium text-sm hover:bg-slate-800 transition-colors shadow-sm flex items-center gap-2"
+            >
+              <span>Student Login</span>
+            </Link>
           </div>
-        </Show>
+
+          {/* Mobile Hamburger Button */}
+          <div className="flex lg:hidden items-center gap-2">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg text-slate-900 hover:bg-black/10 transition-colors"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden bg-[#FBC02D] border-t border-black/10 px-4 pt-2 pb-6 space-y-3">
+          <Link
+            href="/"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-lg text-base font-semibold text-slate-950 hover:bg-black/10"
+          >
+            Home
+          </Link>
+
+          <div className="space-y-1">
+            <span className="block px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-800">
+              B.PHARM SEMESTERS
+            </span>
+            <div className="grid grid-cols-2 gap-1 pl-2">
+              {bpharmSemesters.map(sem => (
+                <Link
+                  key={sem.slug}
+                  href={`/bpharm/${sem.slug}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-900 bg-black/5 hover:bg-black/10"
+                >
+                  {sem.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <span className="block px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-800">
+              D.PHARM YEARS
+            </span>
+            <div className="grid grid-cols-2 gap-1 pl-2">
+              {dpharmYears.map(yr => (
+                <Link
+                  key={yr.slug}
+                  href={`/dpharm/${yr.slug}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-900 bg-black/5 hover:bg-black/10"
+                >
+                  {yr.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-black/10 pt-2 space-y-1">
+            <Link
+              href="/posts"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-900 hover:bg-black/10"
+            >
+              All Posts / Career Articles
+            </Link>
+            <Link
+              href="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-900 hover:bg-black/10"
+            >
+              About Us
+            </Link>
+            <Link
+              href="/privacy"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-900 hover:bg-black/10"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/contact"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-900 hover:bg-black/10"
+            >
+              Contact Us
+            </Link>
+            <Link
+              href="/app/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block mt-2 text-center px-4 py-2.5 bg-slate-900 text-white rounded-xl font-medium text-sm"
+            >
+              Student Login
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

@@ -12,7 +12,11 @@ export default function ModerationPage() {
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/v1/admin/moderation?tab=${tab}`);
+      const res = await fetch(`/api/v1/admin/moderation?tab=${tab}`, {
+        headers: {
+          "x-admin-passcode": "admin123",
+        },
+      });
       const json = await res.json();
       if (json.success) setComments(json.data.comments || []);
     } catch (err) {
@@ -32,7 +36,10 @@ export default function ModerationPage() {
     try {
       const res = await fetch(`/api/v1/admin/moderation`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-admin-passcode": "admin123",
+        },
         body: JSON.stringify({ id, action })
       });
       if (res.ok) {
@@ -51,22 +58,22 @@ export default function ModerationPage() {
             <ShieldAlert className="w-6 h-6 text-brand-light" />
             Comment Moderation
           </h1>
-          <p className="text-muted font-mono text-sm mt-1">Review flagged and pending user comments</p>
+          <p className="text-muted font-mono text-sm mt-1">Review student comments, approve valid questions, or delete spam</p>
         </div>
       </div>
 
       <div className="flex border-b border-white/10">
-        {["pending", "reported"].map(t => (
+        {["pending", "approved"].map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-6 py-3 font-mono text-sm border-b-2 transition-colors capitalize ${
               tab === t 
-                ? "border-brand-light text-brand-light" 
+                ? "border-brand-light text-brand-light font-bold" 
                 : "border-transparent text-slate-400 hover:text-white"
             }`}
           >
-            {t} Queue
+            {t} ({t === "pending" ? "Awaiting Approval" : "Live on Site"})
           </button>
         ))}
       </div>
@@ -86,19 +93,19 @@ export default function ModerationPage() {
             <div key={comment.id} className="liquid-glass rounded-xl p-5 border border-white/5 flex flex-col md:flex-row gap-6 hover:border-brand/30 transition-colors">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="font-medium text-white">{comment.user_name}</span>
+                  <span className="font-medium text-white">{comment.name || comment.user_name || "Anonymous Student"}</span>
                   <span className="text-xs text-slate-500 font-mono">{new Date(comment.created_at).toLocaleString()}</span>
                 </div>
                 <p className="text-slate-300 bg-surface/30 p-3 rounded-lg border border-white/5 font-mono text-sm">
-                  {comment.content}
+                  {comment.comment_text || comment.content}
                 </p>
                 <div className="mt-3 text-xs text-muted flex items-center gap-2">
-                  <span className="px-2 py-1 bg-brand/10 text-brand-light rounded border border-brand/20">
-                    Video: {comment.video?.title || "Unknown"}
+                  <span className="px-2 py-1 bg-brand/10 text-brand-light rounded border border-brand/20 capitalize">
+                    {comment.parent_type ? `${comment.parent_type} notes` : "Study Material"}
                   </span>
                   
                   {/* Auto Mod Simulation */}
-                  {comment.content.includes("http") && (
+                  {(comment.comment_text || comment.content || "").includes("http") && (
                     <span className="flex items-center gap-1 text-amber-400 bg-amber-400/10 px-2 py-1 rounded">
                       <AlertTriangle className="w-3 h-3" /> Link Detected
                     </span>

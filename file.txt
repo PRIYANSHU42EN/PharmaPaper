@@ -1,0 +1,323 @@
+Listed directory A%20notesapp
+Searched for "Pharmdbm"
+Ran command: `Get-ChildItem -Recurse -Filter "*.md" | Select-Object FullName`
+Listed directory Pharmacy-Study-Vault
+Listed directory 00_Meta
+Ran command: `git status; git log -n 5 --oneline`
+Ran command: `Get-ChildItem -Path "d:\","C:\Users\user\" -Filter "*implementation.md*" -Recurse -ErrorAction SilentlyContinue -Depth 4 | Select-Object FullName`
+Ran command: `Get-ChildItem -Path "d:\" -Depth 2`
+Listed directory claude
+Ran command: `Get-ChildItem -Path "C:\Users\user\Downloads\" -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "(skill|design|tech|implementation)\.md" } | Select-Object FullName`
+Ran command: `Copy-Item -Path "C:\Users\user\Downloads\claude\*.md" -Destination "d:\A notesapp\" -Force; Get-ChildItem "d:\A notesapp\*.md"`
+Viewed skill.md:1-36
+Viewed design.md:1-80
+Viewed tech.md:1-194
+Viewed implementation.md:1-94
+Viewed package.json:1-50
+Ran command: `Get-ChildItem -Path "src" -Recurse | Select-Object FullName`
+Ran command: `Get-ChildItem -Path "src\app" -Recurse -File | Select-Object FullName`
+Listed directory supabase
+Listed directory migrations
+Ran command: `Get-ChildItem -Recurse -Filter "*.sql" | Select-Object FullName`
+Viewed db.ts:1-101
+Viewed 20260616000000_create_profiles.sql:1-36
+Viewed 20260616000001_create_notifications.sql:1-21
+Viewed 20260616000002_admin_tables.sql:1-82
+Searched for ".from("
+Ran command: `Get-ChildItem -Path "src" -Recurse -File | Select-String -Pattern '\.from\(["'']([^"'']+)["'']\)' | ForEach-Object { $_.Matches.Groups[1].Value } | Sort-Object -Unique`
+Ran command: `Get-ChildItem -Path "src\components" -Recurse -File | Select-Object FullName`
+Ran command: `
+$components = Get-ChildItem -Path "src\components" -Recurse -File
+foreach ($comp in $components) {
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($comp.Name)
+    $usages = Get-ChildItem -Path "src\app" -Recurse -File | Select-String -Pattern "\b$baseName\b" | Select-Object -ExpandProperty Path -Unique
+    $compRel = $comp.FullName.Replace("D:\A notesapp\", "")
+    Write-Output "=== COMPONENT: $compRel ($baseName) ==="
+    if ($usages) {
+        $usages | ForEach-Object { Write-Output "  used in: $_" }
+    } else {
+        Write-Output "  (no direct page usage found or used inside other components)"
+    }
+}
+`
+Ran command: `Get-Content "C:\Users\user\.gemini\antigravity-ide\brain\ce49665c-1219-4115-95c9-f372a8f324a9\.system_generated\tasks\task-65.log"`
+Ran command: `
+$components = Get-ChildItem -Path "src\components" -Recurse -File
+foreach ($comp in $components) {
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($comp.Name)
+    $usages = Get-ChildItem -Path "src" -Recurse -File | Select-String -Pattern "\b$baseName\b" | Where-Object { $_.Path -ne $comp.FullName } | Select-Object -ExpandProperty Path -Unique
+    $compRel = $comp.FullName.Replace("D:\A notesapp\", "")
+    Write-Output "=== COMPONENT: $compRel ($baseName) ==="
+    if ($usages) {
+        $usages | ForEach-Object { 
+            $rel = $_.Replace("D:\A notesapp\", "")
+            Write-Output "  used in: $rel" 
+        }
+    } else {
+        Write-Output "  (UNUSED anywhere)"
+    }
+}
+`
+Ran command: `Get-Content "C:\Users\user\.gemini\antigravity-ide\brain\ce49665c-1219-4115-95c9-f372a8f324a9\.system_generated\tasks\task-70.log"`
+Ran command: `
+Get-ChildItem -Path "src\app\(admin)\admin" -Recurse -File | Select-Object FullName
+`
+
+Here is the full feature audit for **Pharmdbm** (Step 1). 
+
+No code, database, or configuration files were changed.
+
+---
+
+# Pharmdbm Project Feature Audit (Step 1)
+
+This audit compares the existing codebase against the specifications defined in [`skill.md`](file:///d:/A%20notesapp/skill.md), [`design.md`](file:///d:/A%20notesapp/design.md), [`tech.md`](file:///d:/A%20notesapp/tech.md), and [`implementation.md`](file:///d:/A%20notesapp/implementation.md).
+
+> [!NOTE]
+> **Summary Finding**: The codebase was built as a full **Next.js 16 (App Router) SaaS & Video Learning Platform** with Clerk Authentication, Razorpay Subscriptions/Trials, Creator/Lecturer Portals, Interactive Quizzes, 3D Hero Canvases, and extensive Admin Telemetry/Security tooling — rather than the specified **React 18 + Vite** four-level free notes funnel (`Home → Semester → Subject → Unit → TimedDownloadButton`).
+
+---
+
+## 1. Pages & Routes
+
+### A. Marketing & Public Pages
+| Route | File Path | Description | Status |
+|---|---|---|---|
+| `/` | [`src/app/(marketing)/page.tsx`](file:///d:/A%20notesapp/src/app/(marketing)/page.tsx) + [`src/components/HomeClient.tsx`](file:///d:/A%20notesapp/src/components/HomeClient.tsx) | Landing page with Hero, Semester grid, Top Lecturers, Video Carousel, and Pricing CTA | **Unclear** *(Home & Semester Grid are in spec; Video carousel, Top Lecturers, and Pricing CTA are Extra)* |
+| `/contact` | [`src/app/(marketing)/contact/page.tsx`](file:///d:/A%20notesapp/src/app/(marketing)/contact/page.tsx) | Contact form and support contact info | **In spec** |
+| `/privacy` | [`src/app/(marketing)/privacy/page.tsx`](file:///d:/A%20notesapp/src/app/(marketing)/privacy/page.tsx) | Privacy Policy static document | **In spec** |
+| `/terms` | [`src/app/(marketing)/terms/page.tsx`](file:///d:/A%20notesapp/src/app/(marketing)/terms/page.tsx) | Terms & Conditions static document | **In spec** |
+| `/pricing` | [`src/app/(marketing)/pricing/page.tsx`](file:///d:/A%20notesapp/src/app/(marketing)/pricing/page.tsx) | Pricing tiers, trial trigger, and Razorpay checkout triggers | **Extra** |
+| `/refund` | [`src/app/(student)/app/refund/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/refund/page.tsx) | Refund policy page for paid subscriptions | **Extra** |
+| `/:course/:semesterSlug` | *Not implemented in current routes* | 4-level funnel Level 2: Semester Subject List + SEO Article + Sidebar + Comments | **Missing (In spec)** |
+| `/:course/:semesterSlug/:subjectSlug` | *Not implemented in current routes* | 4-level funnel Level 3: Subject Unit List + SEO Article + SubjectPager + Sidebar + Comments | **Missing (In spec)** |
+| `/:course/:semesterSlug/:subjectSlug/:unitSlug` | *Not implemented in current routes* | 4-level funnel Level 4: Unit Detail + `TimedDownloadButton` + Comments | **Missing (In spec)** |
+| `/about`, `/disclaimer` | *Not implemented* | Static about & disclaimer pages | **Missing (In spec)** |
+
+### B. Student / Learning App Routes
+| Route | File Path | Description | Status |
+|---|---|---|---|
+| `/app/dashboard` | [`src/app/(student)/app/dashboard/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/dashboard/page.tsx) | Student LMS dashboard (watch history, bookmarks, subscribed lecturers) | **Extra** |
+| `/app/feed` | [`src/app/(student)/app/feed/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/feed/page.tsx) | Vertical TikTok/Reels-style educational video feed | **Extra** |
+| `/app/videos` | [`src/app/(student)/app/videos/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/videos/page.tsx) | Video catalog with filters (semester, subject, lecturer) | **Extra** |
+| `/app/videos/subject/[subjectId]` | [`src/app/(student)/app/videos/subject/[subjectId]/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/videos/subject/[subjectId]/page.tsx) | Filtered video feed for a specific subject | **Extra** |
+| `/app/videos/[videoId]` | [`src/app/(student)/app/videos/[videoId]/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/videos/[videoId]/page.tsx) | Video player with watermarking, notes tab, PYQ tab, and comments | **Extra** |
+| `/app/notes` | [`src/app/(student)/app/notes/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/notes/page.tsx) | Notes catalog browser reading `study_materials` | **Extra** |
+| `/app/subject` | [`src/app/(student)/app/subject/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/subject/page.tsx) + [`SubjectClient.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/subject/SubjectClient.tsx) | Flat subject view with Inline PDF viewer behind a PaywallModal | **Extra** |
+| `/app/pyq` | [`src/app/(student)/app/pyq/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/pyq/PYQClient.tsx) | Previous Year Questions viewer with paywalled inline PDF viewing | **Extra** |
+| `/app/quiz/[subject]` | [`src/app/(student)/app/quiz/[subject]/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/quiz/[subject]/page.tsx) | Interactive quiz engine with timers, scoring, and leaderboard | **Extra** |
+| `/app/login` | [`src/app/(student)/app/login/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/login/page.tsx) | Clerk / custom user authentication page | **Extra** *(Spec requires Supabase Auth `/admin/login` only)* |
+| `/app/signup` | [`src/app/(student)/app/signup/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/signup/page.tsx) | Student registration page | **Extra** |
+| `/app/profile/[userId]` | [`src/app/(student)/app/profile/[userId]/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/profile/[userId]/page.tsx) | Public/Private user profile page | **Extra** |
+| `/app/settings` | [`src/app/(student)/app/settings/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/settings/page.tsx) | Student account and notification settings | **Extra** |
+| `/app/upgrade` | [`src/app/(student)/app/upgrade/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/upgrade/page.tsx) | Subscription upgrade and paywall unlock page | **Extra** |
+| `/app/demo-pay` | [`src/app/(student)/app/demo-pay/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/demo-pay/page.tsx) | Sandbox payment test interface | **Extra** |
+
+### C. Lecturer / Creator Portal Routes
+| Route | File Path | Description | Status |
+|---|---|---|---|
+| `/app/lecturer` | [`src/app/(student)/app/lecturer/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/lecturer/page.tsx) | Creator dashboard overview (views, subscribers, uploads) | **Extra** |
+| `/app/lecturer/analytics` | [`src/app/(student)/app/lecturer/analytics/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/lecturer/analytics/page.tsx) | Creator analytics and video performance charts | **Extra** |
+| `/app/lecturer/playlists` | [`src/app/(student)/app/lecturer/playlists/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/lecturer/playlists/page.tsx) | Playlist creation and video grouping tool | **Extra** |
+| `/app/lecturer/profile` | [`src/app/(student)/app/lecturer/profile/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/lecturer/profile/page.tsx) | Lecturer bio, social links, and qualification editor | **Extra** |
+| `/app/lecturer/upload` | [`src/app/(student)/app/lecturer/upload/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/lecturer/upload/page.tsx) | Video uploader with subject tagging and thumbnail upload | **Extra** |
+| `/app/lecturer/videos` | [`src/app/(student)/app/lecturer/videos/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/lecturer/videos/page.tsx) | Lecturer video library management (edit/delete) | **Extra** |
+| `/app/lecturer/[lecturerId]` | [`src/app/(student)/app/lecturer/[lecturerId]/page.tsx`](file:///d:/A%20notesapp/src/app/(student)/app/lecturer/[lecturerId]/page.tsx) | Public lecturer channel page with subscribe button and video list | **Extra** |
+
+### D. Admin Dashboard Routes
+| Route | File Path | Description | Status |
+|---|---|---|---|
+| `/admin` | [`src/app/(admin)/admin/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/page.tsx) | Admin dashboard home (KPIs, active subscriptions, system alerts) | **Unclear** *(Dashboard is in spec; SaaS KPIs & active subs are Extra)* |
+| `/admin/analytics` | [`src/app/(admin)/admin/analytics/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/analytics/page.tsx) | Platform revenue, MRR, retention, video views analytics | **Unclear** *(In spec for `download_logs` counts; MRR/videos is Extra)* |
+| `/admin/content` | [`src/app/(admin)/admin/content/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/content/page.tsx) | Content management screen | **Unclear** *(Spec requires Semesters/Subjects/Units/Downloads CRUD; this manages flat `study_materials`)* |
+| `/admin/content/videos` | [`src/app/(admin)/admin/content/videos/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/content/videos/page.tsx) | Video catalog admin editor | **Extra** |
+| `/admin/moderation` | [`src/app/(admin)/admin/moderation/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/moderation/page.tsx) | Lecturer video upload approval queue and comment moderation | **Extra** *(Comment moderation is in spec; video approval is Extra)* |
+| `/admin/users` | [`src/app/(admin)/admin/users/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/users/page.tsx) | User accounts list, role assignment (student/lecturer/admin), user banning | **Extra** |
+| `/admin/users/[id]` | [`src/app/(admin)/admin/users/[id]/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/users/[id]/page.tsx) | User detail inspector (watch history, payments, quota) | **Extra** |
+| `/admin/api-monitor` | [`src/app/(admin)/admin/api-monitor/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/api-monitor/page.tsx) | Live API latency, error rate monitoring, `api_logs` viewer | **Extra** |
+| `/admin/database` | [`src/app/(admin)/admin/database/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/database/page.tsx) | Web-based SQL query console and table inspector | **Extra** |
+| `/admin/security` | [`src/app/(admin)/admin/security/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/security/page.tsx) | IP blocklist manager and suspicious activity log viewer | **Extra** |
+| `/admin/health` | [`src/app/(admin)/admin/health/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/health/page.tsx) | Service health check (Supabase, Redis, Razorpay, memory) | **Extra** |
+| `/admin/settings` | [`src/app/(admin)/admin/settings/page.tsx`](file:///d:/A%20notesapp/src/app/(admin)/admin/settings/page.tsx) | Dynamic platform config and feature flag toggles | **Extra** |
+
+### E. Backend API Endpoints (`src/app/api/*`)
+*Note: In `tech.md`, data access is specified as direct `@supabase/supabase-js` client queries governed by Row-Level Security (RLS), with no custom Next.js API server layer.*
+| Endpoint | File Path | Purpose | Status |
+|---|---|---|---|
+| `/api/razorpay/*` (5 routes) | `src/app/api/razorpay/*` | Razorpay order creation, payment verification, webhook, subscriptions | **Extra** |
+| `/api/trial/*` (4 routes) | `src/app/api/trial/*` | 7-day card-verified free trial management | **Extra** |
+| `/api/lecturer/*` (6 routes) | `src/app/api/lecturer/*` | Lecturer video upload, playlists, channel profile, analytics | **Extra** |
+| `/api/videos/*` (8 routes) | `src/app/api/videos/*` | Video likes, comments, timestamp notes, progress tracking | **Extra** |
+| `/api/v1/admin/*` (10 routes) | `src/app/api/v1/admin/*` | Admin endpoints for security, database, API monitor, moderation, users | **Extra** |
+| `/api/v1/notifications/*` (3 routes) | `src/app/api/v1/notifications/*` | Student in-app notifications | **Extra** |
+| `/api/v1/users/*` (3 routes) | `src/app/api/v1/users/*` | Profile fetching, avatar upload, user update | **Extra** |
+| `/api/bookmarks` | `src/app/api/bookmarks/route.ts` | Material & video bookmarking | **Extra** |
+| `/api/quiz` | `src/app/api/quiz/route.ts` | Quiz questions fetching and submission | **Extra** |
+| `/api/referral/generate` | `src/app/api/referral/generate/route.ts`| Referral link generation | **Extra** |
+| `/api/newsletter/subscribe` | `src/app/api/newsletter/subscribe/route.ts`| Email newsletter subscription | **Extra** |
+| `/api/payments/history` | `src/app/api/payments/history/route.ts`| User payment receipt history | **Extra** |
+| `/api/pdf-proxy` | `src/app/api/pdf-proxy/route.ts`| Proxies PDF streaming | **Extra** |
+| `/api/analytics/track` | `src/app/api/analytics/track/route.ts`| Custom telemetry tracking | **Extra** |
+| `/api/cron/expire-trials` | `src/app/api/cron/expire-trials/route.ts`| Scheduled cron to expire trials | **Extra** |
+| `/api/search` | `src/app/api/search/route.ts`| Server-side search API | **Extra** |
+
+---
+
+## 2. Components
+
+| Component | File Location | Purpose | Used In | Status |
+|---|---|---|---|---|
+| `Navbar` | [`src/components/Navbar.tsx`](file:///d:/A%20notesapp/src/components/Navbar.tsx) | Sticky navigation bar | `HomeClient`, `PageShell`, `[videoId]` | **In spec** *(Contains extra links for videos/feed/Clerk buttons)* |
+| `Footer` | [`src/components/Footer.tsx`](file:///d:/A%20notesapp/src/components/Footer.tsx) | Global site footer | `HomeClient`, `Pricing`, `SubjectClient`, etc. | **In spec** |
+| `LegalPageLayout` | [`src/components/LegalPageLayout.tsx`](file:///d:/A%20notesapp/src/components/LegalPageLayout.tsx) | Layout wrapper for Privacy, Terms, Contact | `Privacy`, `Terms`, `Contact`, `Refund` | **In spec** |
+| `HomeClient` | [`src/components/HomeClient.tsx`](file:///d:/A%20notesapp/src/components/HomeClient.tsx) | Home page client interactivity | `src/app/(marketing)/page.tsx` | **Unclear** *(Semester grid is in spec; video carousel/lecturers is Extra)* |
+| `FloatingSocialIcons` | *Not implemented* | Fixed right-edge vertical stack (Telegram, WhatsApp, YouTube) | Described in `design.md` | **Missing (In spec)** |
+| `TimedDownloadButton` | *Not implemented* | 5-10s randomized countdown button unlocking PDF link | Described in `skill.md`, `design.md`, `tech.md` | **Missing (In spec)** |
+| `Sidebar` (`SearchBox` + `RecentPosts`) | *Not implemented* | Right 30% column on Semester, Subject, and Unit pages | Described in `design.md`, `tech.md` | **Missing (In spec)** |
+| `SubjectPager` | *Not implemented* | Prev/Next subject pagination component | Described in `design.md`, `tech.md` | **Missing (In spec)** |
+| `CommentSection` | *Not implemented* | General page comments for Semester/Subject/Unit | Described in `design.md`, `tech.md` | **Missing (In spec)** |
+| `AccessGate` | [`src/components/AccessGate.tsx`](file:///d:/A%20notesapp/src/components/AccessGate.tsx) | Paywall / subscription gate wrapper | Unused | **Extra** |
+| `AnalyticsTracker` | [`src/components/AnalyticsTracker.tsx`](file:///d:/A%20notesapp/src/components/AnalyticsTracker.tsx) | Client analytics telemetry ping | `src/app/layout.tsx` | **Extra** |
+| `BlurText` | [`src/components/BlurText.tsx`](file:///d:/A%20notesapp/src/components/BlurText.tsx) | GSAP/Framer text animation | `HomeClient` | **Extra** |
+| `FloatingCard` | [`src/components/FloatingCard.tsx`](file:///d:/A%20notesapp/src/components/FloatingCard.tsx) | 3D glassmorphism tilt card | `NotesClient`, `PYQClient`, `HomeClient` | **Extra** |
+| `HeroCanvas` | [`src/components/HeroCanvas.tsx`](file:///d:/A%20notesapp/src/components/HeroCanvas.tsx) | Three.js 3D rotating canvas | Unused | **Extra** |
+| `InlinePDFViewer` | [`src/components/InlinePDFViewer.tsx`](file:///d:/A%20notesapp/src/components/InlinePDFViewer.tsx) | Embedded PDF viewer behind paywall | `PYQClient`, `SubjectClient` | **Extra** |
+| `LoadingSpinner` | [`src/components/LoadingSpinner.tsx`](file:///d:/A%20notesapp/src/components/LoadingSpinner.tsx) | Loading state indicator | Unused | **Extra** |
+| `NavbarBadge` | [`src/components/NavbarBadge.tsx`](file:///d:/A%20notesapp/src/components/NavbarBadge.tsx) | Notification count indicator | `Navbar`, `HomeClient` | **Extra** |
+| `NotificationsDropdown` | [`src/components/NotificationsDropdown.tsx`](file:///d:/A%20notesapp/src/components/NotificationsDropdown.tsx) | In-app notification list | Unused | **Extra** |
+| `PageShell` | [`src/components/PageShell.tsx`](file:///d:/A%20notesapp/src/components/PageShell.tsx) | General page container | Unused | **Extra** |
+| `PaywallModal` | [`src/components/PaywallModal.tsx`](file:///d:/A%20notesapp/src/components/PaywallModal.tsx) | Razorpay payment trigger popup | `PYQClient`, `SubjectClient` | **Extra** |
+| `PricingCard` | [`src/components/PricingCard.tsx`](file:///d:/A%20notesapp/src/components/PricingCard.tsx) | Subscription plan card | Unused | **Extra** |
+| `PWALoader` | [`src/components/PWALoader.tsx`](file:///d:/A%20notesapp/src/components/PWALoader.tsx) | Progressive Web App registration | `src/app/layout.tsx` | **Extra** |
+| `TrialBanner` | [`src/components/TrialBanner.tsx`](file:///d:/A%20notesapp/src/components/TrialBanner.tsx) | Free trial remaining days alert banner | `src/app/layout.tsx` | **Extra** |
+| `TrialModal` | [`src/components/TrialModal.tsx`](file:///d:/A%20notesapp/src/components/TrialModal.tsx) | Card verification popup for free trial | `src/app/(marketing)/pricing/page.tsx` | **Extra** |
+| `UpgradePrompt` | [`src/components/UpgradePrompt.tsx`](file:///d:/A%20notesapp/src/components/UpgradePrompt.tsx) | In-line paywall upgrade banner | Unused | **Extra** |
+| `LecturerLayout` | [`src/components/lecturer/LecturerLayout.tsx`](file:///d:/A%20notesapp/src/components/lecturer/LecturerLayout.tsx) | Creator dashboard shell | `src/app/(student)/app/lecturer/*` | **Extra** |
+| `FilterBar` (video/videos) | `src/components/video/FilterBar.tsx` | Filters video by subject & lecturer | `src/app/(student)/app/videos/page.tsx` | **Extra** |
+| `PlaylistSidebar` | [`src/components/video/PlaylistSidebar.tsx`](file:///d:/A%20notesapp/src/components/video/PlaylistSidebar.tsx) | Video playlist navigation | `src/app/(student)/app/videos/[videoId]/page.tsx` | **Extra** |
+| `SecureVideoPlayer` | [`src/components/video/SecureVideoPlayer.tsx`](file:///d:/A%20notesapp/src/components/video/SecureVideoPlayer.tsx) | Video player with dynamic watermarking | `src/app/(student)/app/videos/[videoId]/page.tsx` | **Extra** |
+| `SubscribeButton` | [`src/components/video/SubscribeButton.tsx`](file:///d:/A%20notesapp/src/components/video/SubscribeButton.tsx) | Follow/subscribe to lecturer | `dashboard`, `lecturer/[lecturerId]` | **Extra** |
+| `VideoCard` | `src/components/video/VideoCard.tsx` | Video thumbnail card with stats | `videos`, `lecturer`, `SubjectClient` | **Extra** |
+| `VideoInfo` | [`src/components/video/VideoInfo.tsx`](file:///d:/A%20notesapp/src/components/video/VideoInfo.tsx) | Video title, lecturer bio, views, likes | `src/app/(student)/app/videos/[videoId]/page.tsx` | **Extra** |
+| `VideoTabs` | [`src/components/video/VideoTabs.tsx`](file:///d:/A%20notesapp/src/components/video/VideoTabs.tsx) | Timestamp notes, PYQs, comments tabs | `src/app/(student)/app/videos/[videoId]/page.tsx` | **Extra** |
+| `VideoUpgradeOverlay` | [`src/components/video/VideoUpgradeOverlay.tsx`](file:///d:/A%20notesapp/src/components/video/VideoUpgradeOverlay.tsx) | Lock overlay on video when unpaid | `SecureVideoPlayer` | **Extra** |
+| `ContinueWatching` | [`src/components/videos/ContinueWatching.tsx`](file:///d:/A%20notesapp/src/components/videos/ContinueWatching.tsx) | Resume video playback row | `src/app/(student)/app/videos/page.tsx` | **Extra** |
+| `InfiniteScroll` | [`src/components/videos/InfiniteScroll.tsx`](file:///d:/A%20notesapp/src/components/videos/InfiniteScroll.tsx) | Infinite list fetcher | `VideoFeedPage` | **Extra** |
+| `VideoFeedPage` | [`src/components/videos/VideoFeedPage.tsx`](file:///d:/A%20notesapp/src/components/videos/VideoFeedPage.tsx) | Full screen swipeable reel viewer | `src/app/(student)/app/feed/page.tsx` | **Extra** |
+
+---
+
+## 3. Database (Supabase Schema, Migrations & Code Models)
+
+### A. In-Spec Tables
+| Table Name | Specified Columns | Current State in Codebase | Status |
+|---|---|---|---|
+| `semesters` | `id`, `number`, `course`, `title`, `slug`, `cover_image_url`, `content_html`, `created_at` | Queried in [`src/lib/db.ts`](file:///d:/A%20notesapp/src/lib/db.ts) (linked via `course_id`) | **In spec** |
+| `subjects` | `id`, `semester_id`, `name`, `slug`, `description`, `order_index`, `content_html`, `created_at` | Queried in [`src/lib/db.ts`](file:///d:/A%20notesapp/src/lib/db.ts) and video routes | **In spec** |
+| `units` | `id`, `subject_id`, `unit_number`, `title`, `order_index`, `content_html` | Not used in current code (replaced by `study_materials`) | **Missing (In spec)** |
+| `downloads` | `id`, `unit_id`, `file_name`, `file_url`, `file_size_kb`, `uploaded_at` | Not used in current code | **Missing (In spec)** |
+| `download_logs` | `id`, `unit_id`, `downloaded_at`, `user_agent` | Not used in current code | **Missing (In spec)** |
+| `comments` | `id`, `parent_type`, `parent_id`, `name`, `email`, `website`, `comment_text`, `approved`, `created_at` | Not used in current code | **Missing (In spec)** |
+| `posts` | `id`, `title`, `slug`, `excerpt`, `content_html`, `published_at` | Not used in current code | **Missing (In spec)** |
+
+### B. Extra Tables Found in Code & Migrations
+| Table Name | Defined / Used In | Purpose | Status |
+|---|---|---|---|
+| `courses` | [`src/lib/db.ts`](file:///d:/A%20notesapp/src/lib/db.ts) | Separate course entity (`bpharm`, `dpharm`) | **Extra** *(Spec embeds course directly as a check constraint on `semesters`)* |
+| `study_materials` | [`src/lib/supabase.ts`](file:///d:/A%20notesapp/src/lib/supabase.ts), `SubjectClient`, `PYQClient` | Flat table holding notes, pyqs, mindmaps | **Extra** *(Spec uses structured `units` + `downloads`)* |
+| `profiles` | Migration [`20260616000000_create_profiles.sql`](file:///d:/A%20notesapp/supabase/migrations/20260616000000_create_profiles.sql) | Clerk user profiles, avatar, bio, course | **Extra** |
+| `notifications` | Migration [`20260616000001_create_notifications.sql`](file:///d:/A%20notesapp/supabase/migrations/20260616000001_create_notifications.sql) | User notification inbox | **Extra** |
+| `api_logs` | Migration [`20260616000002_admin_tables.sql`](file:///d:/A%20notesapp/supabase/migrations/20260616000002_admin_tables.sql) | Request route, latency, status code logging | **Extra** |
+| `ip_blocklist` | Migration [`20260616000002_admin_tables.sql`](file:///d:/A%20notesapp/supabase/migrations/20260616000002_admin_tables.sql) | Banned client IP records | **Extra** |
+| `suspicious_activity` | Migration [`20260616000002_admin_tables.sql`](file:///d:/A%20notesapp/supabase/migrations/20260616000002_admin_tables.sql) | Threat detection & failed login log | **Extra** |
+| `email_templates` | Migration [`20260616000002_admin_tables.sql`](file:///d:/A%20notesapp/supabase/migrations/20260616000002_admin_tables.sql) | Rich HTML transactional email templates | **Extra** |
+| `platform_config` | Migration [`20260616000002_admin_tables.sql`](file:///d:/A%20notesapp/supabase/migrations/20260616000002_admin_tables.sql) | Dynamic feature flags & system variables | **Extra** |
+| `rate_limit_config` | Migration [`20260616000002_admin_tables.sql`](file:///d:/A%20notesapp/supabase/migrations/20260616000002_admin_tables.sql) | Endpoint rate limiting thresholds | **Extra** |
+| `videos` | Used across `src/app/api/videos/*`, `src/app/(student)/app/videos/*` | Video content metadata, URL, duration, status | **Extra** |
+| `video_views` | `src/app/api/videos/progress` | User video watch timestamp and view counts | **Extra** |
+| `video_likes` | `src/app/api/videos/like` | User video likes | **Extra** |
+| `video_notes` | `src/app/api/videos/notes` | Timestamp-synced notes taken by students | **Extra** |
+| `video_comments` | `src/app/api/videos/comments` | Video comment thread | **Extra** |
+| `playlists` | `src/app/api/lecturer/playlists` | Video playlists created by lecturers | **Extra** |
+| `lecturers` | `src/app/api/lecturer/*` | Lecturer creator profiles & verification | **Extra** |
+| `lecturer_subscriptions` | `src/app/api/lecturer/subscribe` | Student follows/subscriptions to lecturers | **Extra** |
+| `trials` | `src/app/api/trial/*` | 7-day card-verified free trial records | **Extra** |
+| `payments` | `src/app/api/razorpay/*` | Razorpay orders, payments, subscriptions | **Extra** |
+| `quizzes` | `src/app/api/quiz` | Multiple-choice quiz questions & answers | **Extra** |
+| `quiz_results` | `src/app/api/quiz` | Student test results & scores | **Extra** |
+| `bookmarks` | `src/app/api/bookmarks` | Saved videos and notes | **Extra** |
+| `referrals` / `referral_signups` | `src/app/api/referral/*` | Referral codes & reward tracking | **Extra** |
+| `newsletter_subscribers` | `src/app/api/newsletter/*` | Newsletter email subscriptions | **Extra** |
+| `admin_activity_logs` / `audit_logs` | `src/app/api/v1/admin/*` | Admin action audit log | **Extra** |
+| `page_analytics` / `analytics` | `src/app/api/analytics/*` | Custom telemetry events | **Extra** |
+| `platform_settings` / `popular_materials` | `src/lib/supabase.ts` | Cached dynamic settings | **Extra** |
+
+### C. RLS Policies
+- **Existing Migrations**:
+  - `profiles`: Public select, self-insert, self-update using `auth.uid()::text = user_id`.
+  - `notifications`: Manage own notifications using `auth.uid()::text = user_id`.
+  - `api_logs`, `ip_blocklist`, `suspicious_activity`, `email_templates`, `platform_config`, `rate_limit_config`: Deny all public access (`USING (false)`), accessed via service role.
+- **In-Spec Required Policies (from `tech.md`)**:
+  - `semesters`, `subjects`, `units`, `downloads`, `posts`: Public SELECT (`USING (true)`), Authenticated Admin ALL (`USING (auth.role() = 'authenticated')`).
+  - `download_logs`: Anon INSERT (`WITH CHECK (true)`), Authenticated Admin SELECT (`USING (auth.role() = 'authenticated')`).
+  - `comments`: Anon INSERT (`WITH CHECK (true)`), Public SELECT approved only (`USING (approved = true)`), Authenticated Admin ALL (`USING (auth.role() = 'authenticated')`).
+
+---
+
+## 4. Admin Panel Features
+
+| Feature / Screen | Location | Description | Status |
+|---|---|---|---|
+| **Overview Dashboard** | `/admin` | Displays total users, active paid subscriptions, total videos, API latency, system alerts | **Unclear** *(Dashboard concept in spec; SaaS/revenue/video metrics are Extra)* |
+| **Analytics Screen** | `/admin/analytics` | Charts user growth, DAU, subscription MRR, top performing video content | **Unclear** *(Spec requires simple bar list of download counts from `download_logs`)* |
+| **Content Manager** | `/admin/content` | CRUD for flat `study_materials` (notes, pyqs) | **Unclear** *(Spec requires separate CRUD screens for Semesters, Subjects, Units, Downloads)* |
+| **Semesters CRUD** | *Missing* | Table view, add modal, edit/delete/reorder | **Missing (In spec)** |
+| **Subjects CRUD** | *Missing* | Table view, add modal, edit/delete/reorder (`order_index`) | **Missing (In spec)** |
+| **Units CRUD** | *Missing* | Table view, add modal, edit/delete/reorder (`order_index`) | **Missing (In spec)** |
+| **Downloads Screen** | *Missing* | Upload zone to `notes-pdfs` bucket + external URL toggle | **Missing (In spec)** |
+| **Posts Screen** | *Missing* | News / career post editor (for sidebar widget) | **Missing (In spec)** |
+| **Comment Moderation** | `/admin/moderation` | Approve/reject comments on notes | **In spec** *(Combined with video approvals)* |
+| **Video Approvals** | `/admin/moderation` | Review & approve/reject uploaded lecturer videos | **Extra** |
+| **Video Content Manager** | `/admin/content/videos`| Edit, assign playlists, tag subjects, delete videos | **Extra** |
+| **User Management** | `/admin/users` | Search users, assign roles (student/lecturer/admin), ban users | **Extra** |
+| **User Inspector** | `/admin/users/[id]` | Inspect user watch history, transactions, quota | **Extra** |
+| **API Monitor** | `/admin/api-monitor` | Endpoint latency, error rates, slow query logs, `api_logs` viewer | **Extra** |
+| **Database Console** | `/admin/database` | Direct SQL query runner & table row mutation | **Extra** |
+| **Security Center** | `/admin/security` | IP blocklist editor & suspicious activity incident log | **Extra** |
+| **Health Monitor** | `/admin/health` | Status of Redis, Supabase, Razorpay webhooks, memory | **Extra** |
+| **Platform Settings** | `/admin/settings` | Dynamic feature flags & rate limit configuration editor | **Extra** |
+
+---
+
+## 5. Third-Party Integrations & Libraries (`package.json`)
+
+| Package / Integration | Version | Purpose in Current Codebase | Status |
+|---|---|---|---|
+| `@supabase/supabase-js` | `^2.107.0` | Database client and auth | **In spec** |
+| `lucide-react` | `^1.17.0` | UI icon library | **In spec** |
+| `framer-motion` | `^12.40.0` | Animation library (used for modal/page transitions) | **In spec** *(Optional in spec)* |
+| `tailwindcss` | `^4.0.0` | Utility CSS framework | **In spec** |
+| `@clerk/nextjs` | `^7.4.3` | User authentication & session management | **Extra** *(Spec specifies Supabase Auth with admin email allowlist)* |
+| `razorpay` | `^2.9.6` | Payment gateway for subscriptions & trials | **Extra** *(Spec specifies 100% free gated downloads)* |
+| `@react-three/fiber` | `^9.6.1` | React wrapper for Three.js | **Extra** |
+| `@react-three/drei` | `^10.7.7` | Helper utilities for Three.js 3D scenes | **Extra** |
+| `three` | `^0.160.0` | 3D graphics library (used in `HeroCanvas.tsx`) | **Extra** |
+| `gsap` | `^3.12.5` | Animation engine (used in `BlurText.tsx`) | **Extra** |
+| `react-player` | `^3.4.0` | Video playback player | **Extra** |
+| `@upstash/redis` | `^1.38.0` | Serverless Redis client | **Extra** |
+| `@upstash/ratelimit` | `^2.0.8` | Redis rate limiting middleware | **Extra** |
+| `@dnd-kit/core` | `^6.3.1` | Drag and drop toolkit | **Extra** |
+| `@dnd-kit/sortable` | `^10.0.0` | Drag and drop sortable lists | **Extra** |
+| `recharts` | `^3.8.1` | Charting library (used in admin & lecturer analytics) | **Extra / Unclear** *(Spec mentions simple bar list for downloads)* |
+| `zod` | `^4.4.3` | Schema validation | **Extra / Utility** |
+| `next` | `16.2.6` | Next.js App Router framework | **Extra** *(Spec specifies React 18 + Vite)* |
+| `react-helmet-async` | *Not installed* | Per-page SEO metadata tags | **Missing (In spec)** |
+| `dompurify` | *Not installed* | Admin-authored HTML sanitizer | **Missing (In spec)** |
+
+---
+
+### Step 1 Audit Completed
+
+Please review this audit report. When you are ready for **Step 2**, let me know:
+1. Which specific **"Extra"** or **"Unclear"** features/modules you want completely removed.
+2. Whether you want to retain the Next.js foundation or align strictly with the Vite + React Router setup described in `tech.md`.

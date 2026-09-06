@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { searchSchema } from '@/lib/validators';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -44,21 +44,39 @@ export async function GET(req: Request) {
       return NextResponse.json({ results: [] });
     }
 
-    const formattedQuery = cleanWords
-      .map(word => `${word}:*`)
-      .join(' & ');
+    const queryTerm = `%${cleanWords.join('%')}%`;
 
-    const { data, error } = await supabase
-      .from('study_materials')
-      .select('id, title, subject, course, semester, type')
-      .textSearch('search_vector', formattedQuery);
+    // Query subjects
+    const { data: subjectsData, error: subError } = await supabase
+      .from('subjects')
+      .select('id, name, slug, description, semester_id')
+      .ilike('name', queryTerm)
+      .limit(10);
 
-    if (error) {
-      console.error('Database search error:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // Query units
+    const { data: unitsData, error: unitError } = await supabase
+      .from('units')
+      .select('id, title, slug, unit_number, subject_id')
+      .ilike('title', queryTerm)
+      .limit(10);
 
-    return NextResponse.json({ results: data || [] });
+    const formattedResults = [
+      ...(subjectsData || []).map(s => ({
+        id: s.id,
+        title: s.name,
+        slug: s.slug,
+        type: 'subject',
+        description: s.description,
+      })),
+      ...(unitsData || []).map(u => ({
+        id: u.id,
+        title: u.title,
+        slug: u.slug,
+        type: 'unit',
+      }))
+    ];
+
+    return NextResponse.json({ results: formattedResults });
   } catch (err: any) {
     console.error('Search route handler exception:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
