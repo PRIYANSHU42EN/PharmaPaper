@@ -10,6 +10,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
 
 async function isAuthorized(req: NextRequest): Promise<boolean> {
+  const authHeader = req.headers.get("authorization") || "";
+  if (authHeader && process.env.SUPABASE_SERVICE_ROLE_KEY && authHeader === `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`) {
+    return true;
+  }
   const raw = req.headers.get("x-admin-passcode") || req.nextUrl.searchParams.get("passcode") || "";
   const passcode = raw.trim();
   if (!passcode) return false;

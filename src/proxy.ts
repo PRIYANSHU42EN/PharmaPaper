@@ -10,8 +10,10 @@ export default function proxy(req: NextRequest) {
       return NextResponse.next();
     }
 
+    const authHeader = req.headers.get("authorization") || "";
+    const isServiceAuth = !!(authHeader && process.env.SUPABASE_SERVICE_ROLE_KEY && authHeader === `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`);
     const rawHeader = req.headers.get("x-admin-passcode") || url.searchParams.get("passcode") || "";
-    if (!rawHeader.trim() && process.env.NODE_ENV === "production") {
+    if (!rawHeader.trim() && !isServiceAuth && process.env.NODE_ENV === "production") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
