@@ -3,8 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import { requireRole } from "@/lib/permissions";
 import { success, error as apiError } from "@/lib/api";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder-key";
 
 function isAuthorized(req: NextRequest): boolean {
   const passcode = req.headers.get("x-admin-passcode") || req.nextUrl.searchParams.get("passcode");
