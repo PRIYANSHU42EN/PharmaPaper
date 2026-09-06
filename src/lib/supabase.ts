@@ -333,8 +333,8 @@ export async function getSettings() {
   return {
     sitename: "PharmaPaper",
     site_name: "PharmaPaper",
-    email: "support@pharmapaper.com",
-    contact_email: "support@pharmapaper.com",
+    email: "pharmapaperofficial@zohomail.in",
+    contact_email: "pharmapaperofficial@zohomail.in",
     telegram_url: "https://t.me/pharmapaper",
     description: "Your Gateway to Excellence in Pharmacy Education",
   };

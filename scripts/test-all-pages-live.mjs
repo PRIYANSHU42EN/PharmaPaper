@@ -43,7 +43,7 @@ const routesToTest = [
   {
     name: "Contact Page",
     path: "/contact",
-    checks: ["Contact Us", "support@pharmapaper.com"],
+    checks: ["Contact Us", "pharmapaperofficial@zohomail.in"],
   },
   {
     name: "Privacy Policy Page",

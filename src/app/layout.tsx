@@ -21,9 +21,29 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pharmapaper.dpdns.org"),
+  title: {
+    default: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
+    template: "%s | PharmaPaper",
+  },
   description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
-  keywords: ["PharmaPaper", "pharmacy notes", "B.Pharm notes", "D.Pharm notes", "pharmacy lecture notes"],
+  keywords: ["PharmaPaper", "pharmacy notes", "B.Pharm notes", "D.Pharm notes", "pharmacy lecture notes", "PCI syllabus"],
+  alternates: {
+    canonical: "https://pharmapaper.dpdns.org",
+  },
+  openGraph: {
+    title: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
+    description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
+    url: "https://pharmapaper.dpdns.org",
+    siteName: "PharmaPaper",
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
+    description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
+  },
 };
 
 export default function RootLayout({
