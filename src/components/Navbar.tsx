@@ -165,16 +165,6 @@ export default function Navbar() {
             </Link>
           </nav>
 
-          {/* Quick Access Portal Button */}
-          <div className="hidden lg:flex items-center gap-3">
-            <Link 
-              href="/app/login" 
-              className="px-4 py-2 bg-slate-900 text-white rounded-xl font-medium text-sm hover:bg-slate-800 transition-colors shadow-sm flex items-center gap-2"
-            >
-              <span>Student Login</span>
-            </Link>
-          </div>
-
           {/* Mobile Hamburger Button */}
           <div className="flex lg:hidden items-center gap-2">
             <button
@@ -263,13 +253,6 @@ export default function Navbar() {
               className="block px-3 py-2 rounded-lg text-sm font-medium text-slate-900 hover:bg-black/10"
             >
               Contact Us
-            </Link>
-            <Link
-              href="/app/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block mt-2 text-center px-4 py-2.5 bg-slate-900 text-white rounded-xl font-medium text-sm"
-            >
-              Student Login
             </Link>
           </div>
         </div>

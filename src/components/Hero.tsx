@@ -1,20 +1,6 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Search, GraduationCap, BookOpen, ShieldCheck, Sparkles } from "lucide-react";
 
 export default function Hero() {
-  const [search, setSearch] = useState("");
-  const router = useRouter();
-
-  function onSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (search.trim()) {
-      router.push(`/bpharm/1st-semester?q=${encodeURIComponent(search.trim())}`);
-    }
-  }
-
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#FBC02D]/15 via-white to-[#F9FAFB] py-12 sm:py-20 border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,13 +21,12 @@ export default function Hero() {
             </p>
 
             {/* Quick Search Bar */}
-            <form onSubmit={onSearch} className="max-w-xl mx-auto lg:mx-0 flex gap-2">
+            <form action="/bpharm/1st-semester" method="GET" className="max-w-xl mx-auto lg:mx-0 flex gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                 <input
                   type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  name="q"
                   placeholder="Search by subject name (e.g. Pharmaceutics, Pharmacognosy)..."
                   className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-300 rounded-2xl text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm"
                 />

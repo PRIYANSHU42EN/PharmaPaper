@@ -1,6 +1,6 @@
 {
-  "name": "PharmPaper Study Gateway",
-  "short_name": "PharmPaper",
+  "name": "PharmaPaper Study Gateway",
+  "short_name": "PharmaPaper",
   "description": "Your Complete PCI Standard Pharmacy Study Vault",
   "start_url": "/",
   "display": "standalone",

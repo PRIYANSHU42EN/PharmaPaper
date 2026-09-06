@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
 import { validateEnv } from "@/lib/env";
 import PublicShell from "@/components/PublicShell";
 import "./globals.css";
@@ -12,12 +11,15 @@ const bebasNeue = Bebas_Neue({
   subsets: ["latin"],
   variable: "--font-bebas-neue",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  adjustFontFallback: true,
+  fallback: ["system-ui", "-apple-system", "sans-serif"],
 });
 
 const siteUrl = (() => {
@@ -65,9 +67,7 @@ export default function RootLayout({
         className={`${bebasNeue.variable} ${inter.variable} min-h-full bg-[#F9FAFB] text-slate-900 font-sans antialiased`}
         suppressHydrationWarning
       >
-        <ClerkProvider afterSignOutUrl="/">
-          <PublicShell>{children}</PublicShell>
-        </ClerkProvider>
+        <PublicShell>{children}</PublicShell>
       </body>
     </html>
   );
