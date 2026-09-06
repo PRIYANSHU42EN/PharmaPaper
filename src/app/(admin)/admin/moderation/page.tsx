@@ -6,9 +6,13 @@ import Link from "next/link";
 
 function getAdminPasscode(): string {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("pharmdbm_admin_passcode") || "admin123";
+    return (
+      sessionStorage.getItem("pharmdbm_admin_passcode") ||
+      localStorage.getItem("pharmdbm_admin_passcode") ||
+      ""
+    );
   }
-  return "admin123";
+  return "";
 }
 
 export default function ModerationPage() {

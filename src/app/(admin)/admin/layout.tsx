@@ -26,55 +26,139 @@ const NAV_ITEMS = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { isLoaded, userId, signOut } = useAuth();
-  const [devAdminAllowed, setDevAdminAllowed] = useState(false);
-  const [passcode, setPasscode] = useState("");
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+  const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Check if admin session was previously unlocked
-    const saved = localStorage.getItem("pharmdbm_admin_session");
-    if (saved === "unlocked") {
-      setDevAdminAllowed(true);
+    // Check if current browser session is already unlocked
+    const sessionActive = 
+      sessionStorage.getItem("pharmdbm_admin_session") === "unlocked" ||
+      localStorage.getItem("pharmdbm_admin_session") === "unlocked";
+
+    if (sessionActive) {
+      setIsAdminUnlocked(true);
     }
+
+    // Check if permanent admin password has been set
+    fetch("/api/v1/admin/auth")
+      .then((res) => res.json())
+      .then((data) => {
+        setIsConfigured(Boolean(data.isConfigured));
+      })
+      .catch((err) => {
+        console.error("Failed to check admin auth status:", err);
+        setIsConfigured(false);
+      });
   }, []);
 
-  const handlePasscodeSubmit = (e: React.FormEvent) => {
+  const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalized = passcode.trim().toLowerCase();
-    const validPasscodes = ["admin123", "pharmapaper", "pharmdbm", "pharmapaper123"];
-    if (validPasscodes.includes(normalized)) {
+    setErrorMsg("");
+
+    if (!password || password.length < 4) {
+      setErrorMsg("Password must be at least 4 characters long.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg("Passwords do not match. Please re-type carefully.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/v1/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "setup", password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setErrorMsg(data.error || "Failed to set password. Please try again.");
+        return;
+      }
+
+      // Unlock for current session
+      sessionStorage.setItem("pharmdbm_admin_session", "unlocked");
+      sessionStorage.setItem("pharmdbm_admin_passcode", password);
       localStorage.setItem("pharmdbm_admin_session", "unlocked");
-      localStorage.setItem("pharmdbm_admin_passcode", normalized);
-      setDevAdminAllowed(true);
+      localStorage.setItem("pharmdbm_admin_passcode", password);
+
+      setIsAdminUnlocked(true);
+      setIsConfigured(true);
       setErrorMsg("");
-    } else {
-      setErrorMsg("Incorrect passcode. Try 'admin123' or use Clerk sign-in.");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Network error while setting password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (!password) {
+      setErrorMsg("Please enter your admin password.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/v1/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setErrorMsg(data.error || "Incorrect password. Please try again.");
+        return;
+      }
+
+      // Unlock for current session
+      sessionStorage.setItem("pharmdbm_admin_session", "unlocked");
+      sessionStorage.setItem("pharmdbm_admin_passcode", password);
+      localStorage.setItem("pharmdbm_admin_session", "unlocked");
+      localStorage.setItem("pharmdbm_admin_passcode", password);
+
+      setIsAdminUnlocked(true);
+      setErrorMsg("");
+    } catch (err: any) {
+      setErrorMsg(err.message || "Network error while verifying password.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAdminLogout = () => {
+    sessionStorage.removeItem("pharmdbm_admin_session");
+    sessionStorage.removeItem("pharmdbm_admin_passcode");
     localStorage.removeItem("pharmdbm_admin_session");
     localStorage.removeItem("pharmdbm_admin_passcode");
-    setDevAdminAllowed(false);
-    if (userId && signOut) {
-      signOut();
-    }
+    setIsAdminUnlocked(false);
+    setPassword("");
+    setConfirmPassword("");
+    setErrorMsg("");
   };
 
-  // Allow access if either Clerk authenticated OR dev admin unlocked
-  const isAuthorized = Boolean(userId || devAdminAllowed);
-
-  if (!isLoaded && !devAdminAllowed) {
+  if (isConfigured === null && !isAdminUnlocked) {
     return (
       <div className="min-h-screen bg-[#051923] flex flex-col items-center justify-center text-white font-mono gap-3">
         <div className="w-10 h-10 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm text-slate-400">Verifying Admin Access...</span>
+        <span className="text-sm text-slate-400">Loading Admin Console...</span>
       </div>
     );
   }
 
-  if (!isAuthorized) {
+  if (!isAdminUnlocked) {
     return (
       <div className="min-h-screen bg-[#051923] flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-slate-900/90 border border-white/10 rounded-2xl p-8 shadow-2xl backdrop-blur-xl text-center">
@@ -82,50 +166,119 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Lock className="w-7 h-7" />
           </div>
 
-          <h2 className="text-2xl font-display font-bold text-white tracking-wide">PharmaPaper Admin Panel</h2>
+          <h2 className="text-2xl font-display font-bold text-white tracking-wide">
+            {isConfigured ? "PharmaPaper Admin Console" : "Set Master Admin Password"}
+          </h2>
           <p className="text-slate-400 font-sans text-xs mt-1.5 mb-6">
-            Sign in to manage curriculum notes, upload PDFs, and moderate student comments.
+            {isConfigured
+              ? "Enter your permanent master password to unlock your administration session."
+              : "Welcome! On this initial setup, create your permanent master admin password to secure the platform."}
           </p>
 
-          <div className="space-y-4">
-            {/* Standard Clerk Login */}
-            <Link
-              href="/app/login?redirect_url=/admin"
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl text-sm shadow-md hover:scale-[1.02] transition-transform"
-            >
-              Sign In via Clerk
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+          <div className="space-y-4 text-left">
+            {isConfigured ? (
+              /* Ongoing Login Form */
+              <form onSubmit={handleLogin} className="space-y-3.5">
+                <div>
+                  <label className="block text-[11px] font-mono uppercase text-slate-400 mb-1.5 text-center">
+                    Admin Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your master password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={loading}
+                      autoFocus
+                      className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 font-mono text-center focus:outline-none focus:border-amber-400 disabled:opacity-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 hover:text-white uppercase tracking-wider"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </div>
 
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-white/10" />
-              <span className="flex-shrink mx-3 text-slate-500 text-xs font-mono uppercase">or quick access</span>
-              <div className="flex-grow border-t border-white/10" />
-            </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-mono font-bold text-xs rounded-xl shadow-lg transition-all disabled:opacity-50"
+                >
+                  {loading ? "Verifying..." : "Unlock Admin Session"}
+                </button>
 
-            {/* Quick Access Passcode */}
-            <form onSubmit={handlePasscodeSubmit} className="space-y-3">
-              <input
-                type="password"
-                placeholder="Enter Master Passcode (e.g. admin123)"
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 font-mono text-center focus:outline-none focus:border-amber-400"
-              />
-              <button
-                type="submit"
-                className="w-full py-2.5 px-4 bg-white/10 hover:bg-white/15 border border-white/10 text-white font-mono text-xs rounded-xl transition-colors"
-              >
-                Unlock Admin Console
-              </button>
-              {errorMsg && (
-                <p className="text-rose-400 text-xs font-mono mt-1">{errorMsg}</p>
-              )}
-            </form>
+                {errorMsg && (
+                  <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono text-center">
+                    {errorMsg}
+                  </div>
+                )}
+              </form>
+            ) : (
+              /* First-Time Setup Form */
+              <form onSubmit={handleSetPassword} className="space-y-3.5">
+                <div>
+                  <label className="block text-[11px] font-mono uppercase text-slate-400 mb-1">
+                    Choose Master Password
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Create a strong password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                    autoFocus
+                    className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 font-mono focus:outline-none focus:border-amber-400 disabled:opacity-50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-mono uppercase text-slate-400 mb-1">
+                    Confirm Master Password
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Re-enter password to confirm"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={loading}
+                    className="w-full bg-black/40 border border-white/15 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 font-mono focus:outline-none focus:border-amber-400 disabled:opacity-50"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1">
+                  <span>Keep this password secure</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="hover:text-white uppercase tracking-wider text-[10px]"
+                  >
+                    {showPassword ? "Hide text" : "Show text"}
+                  </button>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 px-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-mono font-bold text-xs rounded-xl shadow-lg transition-all disabled:opacity-50"
+                >
+                  {loading ? "Setting Password..." : "Set Permanent Password & Enter"}
+                </button>
+
+                {errorMsg && (
+                  <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-mono text-center">
+                    {errorMsg}
+                  </div>
+                )}
+              </form>
+            )}
           </div>
 
           <div className="mt-8 pt-6 border-t border-white/10 text-center">
-            <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors">
+            <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors font-mono">
               <span>← Return to Public Website</span>
             </Link>
           </div>

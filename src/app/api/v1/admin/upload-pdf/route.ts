@@ -5,21 +5,23 @@ import { requireRole } from "@/lib/permissions";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
 
+import { verifyMasterAdminPassword } from "@/lib/admin-auth";
+
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false },
 });
 
-function isAuthorized(req: Request): boolean {
+async function isAuthorized(req: Request): Promise<boolean> {
   const url = new URL(req.url);
   const raw = req.headers.get("x-admin-passcode") || url.searchParams.get("passcode") || "";
-  const passcode = raw.trim().toLowerCase();
-  const validPasscodes = ["admin123", "pharmapaper", "pharmdbm", "pharmapaper123"];
-  return validPasscodes.includes(passcode);
+  const passcode = raw.trim();
+  if (!passcode) return false;
+  return await verifyMasterAdminPassword(passcode);
 }
 
 export async function POST(req: Request) {
   try {
-    if (!isAuthorized(req)) {
+    if (!(await isAuthorized(req))) {
       const authError = await requireRole("admin");
       if (authError) return authError;
     }

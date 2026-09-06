@@ -34,13 +34,16 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     if (url.pathname.startsWith('/api') || url.pathname.startsWith('/_next')) {
       // API routes shouldn't be rewritten structurally, but we still need auth guards
       if (url.pathname.startsWith('/api/v1/admin')) {
+        // Always allow public access to the admin auth setup/login endpoint
+        if (url.pathname === '/api/v1/admin/auth') {
+          return NextResponse.next();
+        }
+
         const rawHeader = req.headers.get('x-admin-passcode') || req.nextUrl.searchParams.get('passcode') || '';
-        const adminHeader = rawHeader.trim().toLowerCase();
-        const validPasscodes = ['admin123', 'pharmapaper', 'pharmdbm', 'pharmapaper123'];
-        const isPasscodeValid = validPasscodes.includes(adminHeader);
+        const hasAdminHeader = rawHeader.trim().length > 0;
         const isClerkAdmin = Boolean(userId);
 
-        if (!isClerkAdmin && !isPasscodeValid && process.env.NODE_ENV === 'production') {
+        if (!isClerkAdmin && !hasAdminHeader && process.env.NODE_ENV === 'production') {
           return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
       }

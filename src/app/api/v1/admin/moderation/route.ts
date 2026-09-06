@@ -3,19 +3,21 @@ import { createClient } from "@supabase/supabase-js";
 import { requireRole } from "@/lib/permissions";
 import { success, error as apiError } from "@/lib/api";
 
+import { verifyMasterAdminPassword } from "@/lib/admin-auth";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder-key";
 
-function isAuthorized(req: NextRequest): boolean {
+async function isAuthorized(req: NextRequest): Promise<boolean> {
   const raw = req.headers.get("x-admin-passcode") || req.nextUrl.searchParams.get("passcode") || "";
-  const passcode = raw.trim().toLowerCase();
-  const validPasscodes = ["admin123", "pharmapaper", "pharmdbm", "pharmapaper123"];
-  return validPasscodes.includes(passcode);
+  const passcode = raw.trim();
+  if (!passcode) return false;
+  return await verifyMasterAdminPassword(passcode);
 }
 
 export async function GET(req: NextRequest) {
   try {
-    if (!isAuthorized(req)) {
+    if (!(await isAuthorized(req))) {
       const authError = await requireRole("admin");
       if (authError) return authError;
     }
@@ -49,7 +51,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    if (!isAuthorized(req)) {
+    if (!(await isAuthorized(req))) {
       const authError = await requireRole("admin");
       if (authError) return authError;
     }
