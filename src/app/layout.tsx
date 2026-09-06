@@ -20,8 +20,16 @@ const inter = Inter({
   display: "swap",
 });
 
+const siteUrl = (() => {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+    return envUrl.replace(/\/$/, "");
+  }
+  return "https://pharmapaper.dpdns.org";
+})();
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://pharmapaper.dpdns.org"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
     template: "%s | PharmaPaper",

@@ -3,8 +3,16 @@ import { supabase } from "@/lib/supabase";
 
 export const revalidate = 86400; // 24 hours
 
+const getBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+    return envUrl.replace(/\/$/, "");
+  }
+  return "https://pharmapaper.dpdns.org";
+};
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pharmapaper.dpdns.org";
+  const baseUrl = getBaseUrl();
 
   // Static URLs
   const staticRoutes: MetadataRoute.Sitemap = [
