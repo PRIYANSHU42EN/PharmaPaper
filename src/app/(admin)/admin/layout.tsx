@@ -42,8 +42,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handlePasscodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const normalized = passcode.trim().toLowerCase();
-    if (normalized === "admin123" || normalized === "pharmapaper" || normalized === "pharmdbm") {
+    const validPasscodes = ["admin123", "pharmapaper", "pharmdbm", "pharmapaper123"];
+    if (validPasscodes.includes(normalized)) {
       localStorage.setItem("pharmdbm_admin_session", "unlocked");
+      localStorage.setItem("pharmdbm_admin_passcode", normalized);
       setDevAdminAllowed(true);
       setErrorMsg("");
     } else {
@@ -53,6 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleAdminLogout = () => {
     localStorage.removeItem("pharmdbm_admin_session");
+    localStorage.removeItem("pharmdbm_admin_passcode");
     setDevAdminAllowed(false);
     if (userId && signOut) {
       signOut();

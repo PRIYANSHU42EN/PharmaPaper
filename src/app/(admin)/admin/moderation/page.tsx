@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import { ShieldAlert, Check, Trash2, AlertTriangle, MessageSquare } from "lucide-react";
 import Link from "next/link";
 
+function getAdminPasscode(): string {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("pharmdbm_admin_passcode") || "admin123";
+  }
+  return "admin123";
+}
+
 export default function ModerationPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -14,7 +21,7 @@ export default function ModerationPage() {
     try {
       const res = await fetch(`/api/v1/admin/moderation?tab=${tab}`, {
         headers: {
-          "x-admin-passcode": "admin123",
+          "x-admin-passcode": getAdminPasscode(),
         },
       });
       const json = await res.json();
@@ -38,7 +45,7 @@ export default function ModerationPage() {
         method: "PATCH",
         headers: { 
           "Content-Type": "application/json",
-          "x-admin-passcode": "admin123",
+          "x-admin-passcode": getAdminPasscode(),
         },
         body: JSON.stringify({ id, action })
       });

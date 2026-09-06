@@ -7,11 +7,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "placeholder-key";
 
 function isAuthorized(req: NextRequest): boolean {
-  const passcode = req.headers.get("x-admin-passcode") || req.nextUrl.searchParams.get("passcode");
-  if (passcode === "admin123" || passcode === "pharmapaper" || passcode === "pharmdbm") {
-    return true;
-  }
-  return false;
+  const raw = req.headers.get("x-admin-passcode") || req.nextUrl.searchParams.get("passcode") || "";
+  const passcode = raw.trim().toLowerCase();
+  const validPasscodes = ["admin123", "pharmapaper", "pharmdbm", "pharmapaper123"];
+  return validPasscodes.includes(passcode);
 }
 
 export async function GET(req: NextRequest) {

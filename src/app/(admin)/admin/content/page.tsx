@@ -52,6 +52,13 @@ interface UnitOption {
   subject_id: string;
 }
 
+function getAdminPasscode(): string {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("pharmdbm_admin_passcode") || "admin123";
+  }
+  return "admin123";
+}
+
 export default function ContentManagementPage() {
   const [activeTab, setActiveTab] = useState<"semesters" | "subjects" | "units" | "downloads" | "posts">("units");
   const [loading, setLoading] = useState(true);
@@ -198,7 +205,7 @@ export default function ContentManagementPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-admin-passcode": "admin123",
+          "x-admin-passcode": getAdminPasscode(),
         },
         body: JSON.stringify({
           action: activeTab === "subjects" ? "rename-subject" : "rename-unit",
@@ -282,7 +289,7 @@ export default function ContentManagementPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-admin-passcode": "admin123",
+          "x-admin-passcode": getAdminPasscode(),
         },
         body: JSON.stringify(payload),
       });
@@ -307,7 +314,7 @@ export default function ContentManagementPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-admin-passcode": "admin123",
+          "x-admin-passcode": getAdminPasscode(),
         },
         body: JSON.stringify({ action: "delete-post", id }),
       });
@@ -404,7 +411,8 @@ export default function ContentManagementPage() {
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/v1/admin/upload-pdf");
-    xhr.setRequestHeader("x-admin-passcode", "admin123");
+    xhr.withCredentials = true;
+    xhr.setRequestHeader("x-admin-passcode", getAdminPasscode());
 
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
