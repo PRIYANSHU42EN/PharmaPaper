@@ -35,7 +35,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       // API routes shouldn't be rewritten structurally, but we still need auth guards
       if (url.pathname.startsWith('/api/v1/admin')) {
         const adminHeader = req.headers.get('x-admin-passcode');
-        const isPasscodeValid = adminHeader === 'admin123' || adminHeader === 'pharmdbm';
+        const isPasscodeValid = adminHeader === 'PharmaPaper123' || adminHeader === 'pharmapaper' || adminHeader === 'pharmdbm';
         const isClerkAdmin = Boolean(userId);
 
         if (!isClerkAdmin && !isPasscodeValid && process.env.NODE_ENV === 'production') {

@@ -60,8 +60,19 @@ export default function SemesterGrid({
           </div>
         </div>
 
-        {/* 4-column desktop / 2-column tablet / 1-column mobile grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Semesters Grid or Clean Empty State */}
+        {semestersToDisplay.length === 0 ? (
+          <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm max-w-lg mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-7 h-7" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 font-display">No Semesters Added Yet</h3>
+            <p className="text-sm text-slate-500 mt-2">
+              Curriculum notes are currently being uploaded by our faculty. Check back shortly or choose another program.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {semestersToDisplay.map((sem) => {
             const courseCode = sem.course || selectedCourse;
             const targetUrl = `/${courseCode}/${sem.slug}`;
@@ -102,6 +113,7 @@ export default function SemesterGrid({
             );
           })}
         </div>
+        )}
       </div>
     </section>
   );

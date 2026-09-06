@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 export const revalidate = 86400; // 24 hours
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pharmdbm.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pharmapaper.com";
 
   // Static URLs
   const staticRoutes: MetadataRoute.Sitemap = [

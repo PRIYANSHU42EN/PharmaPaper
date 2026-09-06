@@ -23,12 +23,12 @@ export async function POST(req: Request) {
     // Verify unit exists
     const { data: unit, error: unitErr } = await supabaseAdmin
       .from("units")
-      .select("id, title, slug, subject_id, subjects(name, semesters(name, courses(code)))")
+      .select("id, title, slug, subject_id, subjects(name, slug, semesters(name, slug, courses(code)))")
       .eq("id", unitId)
       .single();
 
     if (unitErr || !unit) {
-      return NextResponse.json({ error: "Unit not found" }, { status: 404 });
+      return NextResponse.json({ error: "Unit not found in curriculum database" }, { status: 404 });
     }
 
     let fileUrl = directUrl?.trim() || "";
@@ -37,6 +37,25 @@ export async function POST(req: Request) {
 
     // Handle file upload to Supabase Storage bucket `notes-pdfs`
     if (file && file.size > 0) {
+      // Validate file extension and MIME type
+      const isPdfName = file.name.toLowerCase().endsWith(".pdf");
+      const isPdfMime = file.type === "application/pdf" || file.type === "" || file.type === "application/octet-stream";
+      if (!isPdfName) {
+        return NextResponse.json(
+          { error: "Invalid file type: Only PDF documents (.pdf) are permitted." },
+          { status: 400 }
+        );
+      }
+
+      // 50MB maximum size limit
+      const MAX_BYTES = 50 * 1024 * 1024;
+      if (file.size > MAX_BYTES) {
+        return NextResponse.json(
+          { error: `File too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum limit is 50MB.` },
+          { status: 400 }
+        );
+      }
+
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
       fileSizeKb = Math.round(file.size / 1024);
@@ -54,7 +73,7 @@ export async function POST(req: Request) {
 
       if (uploadErr) {
         console.error("Storage upload error:", uploadErr);
-        return NextResponse.json({ error: `Storage upload failed: ${uploadErr.message}` }, { status: 500 });
+        return NextResponse.json({ error: `Supabase Storage upload failed: ${uploadErr.message}` }, { status: 500 });
       }
 
       // Get public URL
@@ -115,10 +134,20 @@ export async function POST(req: Request) {
       downloadRecord = inserted;
     }
 
+    // Build public page URL
+    const subjectObj: any = unit.subjects;
+    const rawCourseCode = subjectObj?.semesters?.courses?.code?.toLowerCase() || "bpharm";
+    const courseCode = rawCourseCode.replace("-", ""); // Ensure 'bpharm' or 'dpharm'
+    const semSlug = subjectObj?.semesters?.slug || "1st-semester";
+    const subSlug = subjectObj?.slug || "subject";
+    const publicPageUrl = `/${courseCode}/${semSlug}/${subSlug}/${unit.slug}`;
+
     return NextResponse.json({
       success: true,
       message: `PDF successfully saved for ${unit.title}`,
       download: downloadRecord,
+      publicPageUrl,
+      fileUrl,
     });
   } catch (err: any) {
     console.error("Upload API error:", err);

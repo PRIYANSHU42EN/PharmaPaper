@@ -27,7 +27,7 @@ export default function Hero() {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-extrabold text-slate-950 tracking-tight leading-tight">
-              Welcome to <span className="text-[#FBC02D] drop-shadow-sm filter contrast-125">Pharmdbm</span>
+              Welcome to <span className="text-[#FBC02D] drop-shadow-sm filter contrast-125">PharmaPaper</span>
             </h1>
 
             <p className="text-lg sm:text-xl font-medium text-slate-700 max-w-2xl leading-relaxed">

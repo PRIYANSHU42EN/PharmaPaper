@@ -32,7 +32,7 @@ export default function AdminOverview() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-display font-bold text-white tracking-wide">Admin Dashboard</h1>
-        <p className="text-muted font-mono text-sm mt-1">PharmPaper administrative controls and content hub</p>
+        <p className="text-muted font-mono text-sm mt-1">PharmaPaper administrative controls and content hub</p>
       </div>
 
       {/* Quick Launch Cards */}

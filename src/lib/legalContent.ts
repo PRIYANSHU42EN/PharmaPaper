@@ -148,28 +148,28 @@ export const contactUs: LegalPageData = {
     {
       heading: "Contact Information",
       content: [
-        "📧 Email: support@pharmdbm.com",
-        "📍 Telegram Community: @pharmdbm",
+        "📧 Email: support@pharmapaper.com",
+        "📍 Telegram Community: @pharmapaper",
         "⏰ Response time: Within 24 hours"
       ]
     }
   ],
   contactBlock: {
-    email: "support@pharmdbm.com",
+    email: "support@pharmapaper.com",
     city: "India"
   }
 };
 
 // PAGE 5 — ABOUT US
 export const aboutUs: LegalPageData = {
-  title: "About Pharmdbm",
+  title: "About PharmaPaper",
   lastUpdated: "September 2026",
-  intro: "Pharmdbm is your gateway to excellence in pharmacy education. We are dedicated to providing high-quality, syllabus-aligned lecture notes, unit summaries, and study resources for B.Pharm and D.Pharm students across India.",
+  intro: "PharmaPaper is your gateway to excellence in pharmacy education. We are dedicated to providing high-quality, syllabus-aligned lecture notes, unit summaries, and study resources for B.Pharm and D.Pharm students across India.",
   sections: [
     {
       heading: "Our Mission",
       content: [
-        "Pharmacy education demands deep theoretical comprehension alongside clinical and industrial mastery. Pharmdbm simplifies complex topics by organizing lecture materials strictly according to the Pharmacy Council of India (PCI) syllabus.",
+        "Pharmacy education demands deep theoretical comprehension alongside clinical and industrial mastery. PharmaPaper simplifies complex topics by organizing lecture materials strictly according to the Pharmacy Council of India (PCI) syllabus.",
         "We believe that every pharmacy student deserves access to clean, distraction-free, and high-yield notes without financial barriers."
       ]
     },
@@ -188,9 +188,9 @@ export const aboutUs: LegalPageData = {
     }
   ],
   contactBlock: {
-    email: "support@pharmdbm.com",
+    email: "support@pharmapaper.com",
     city: "India",
-    web: "pharmdbm.com"
+    web: "pharmapaper.com"
   }
 };
 
@@ -198,12 +198,12 @@ export const aboutUs: LegalPageData = {
 export const disclaimer: LegalPageData = {
   title: "Disclaimer",
   lastUpdated: "September 2026",
-  intro: "Please review the educational disclaimer governing the use of materials on Pharmdbm.",
+  intro: "Please review the educational disclaimer governing the use of materials on PharmaPaper.",
   sections: [
     {
       heading: "Educational Purpose Only",
       content: [
-        "The notes, articles, and downloadable PDFs on Pharmdbm are curated exclusively for academic and educational review purposes by pharmacy students.",
+        "The notes, articles, and downloadable PDFs on PharmaPaper are curated exclusively for academic and educational review purposes by pharmacy students.",
         "They are designed as supplementary revision guides and are not a substitute for official university textbooks, professor lectures, or certified clinical pharmacopoeias."
       ]
     },
@@ -221,7 +221,7 @@ export const disclaimer: LegalPageData = {
     }
   ],
   contactBlock: {
-    email: "support@pharmdbm.com",
+    email: "support@pharmapaper.com",
     city: "India"
   }
 };

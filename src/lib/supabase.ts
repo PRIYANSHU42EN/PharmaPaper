@@ -69,6 +69,7 @@ export interface Post {
   id: string;
   title: string;
   slug: string;
+  category?: string;
   excerpt?: string;
   content_html?: string;
   published_at: string;
@@ -216,6 +217,16 @@ export async function logDownload(unitId: string, userAgent?: string): Promise<b
         user_agent: userAgent || (typeof navigator !== "undefined" ? navigator.userAgent : "unknown"),
       });
 
+    // Broadcast event on realtime channel for multi-tab live sync
+    try {
+      const channel = supabase.channel("download-analytics");
+      channel.send({
+        type: "broadcast",
+        event: "download",
+        payload: { unit_id: unitId, timestamp: new Date().toISOString() },
+      });
+    } catch (_) {}
+
     return !error;
   } catch (err) {
     console.error("Failed to log download:", err);
@@ -320,11 +331,11 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
  */
 export async function getSettings() {
   return {
-    sitename: "Pharmdbm",
-    site_name: "Pharmdbm",
-    email: "support@pharmdbm.com",
-    contact_email: "support@pharmdbm.com",
-    telegram_url: "https://t.me/pharmdbm",
+    sitename: "PharmaPaper",
+    site_name: "PharmaPaper",
+    email: "support@pharmapaper.com",
+    contact_email: "support@pharmapaper.com",
+    telegram_url: "https://t.me/pharmapaper",
     description: "Your Gateway to Excellence in Pharmacy Education",
   };
 }

@@ -13,14 +13,14 @@ export default function Footer() {
                 <GraduationCap className="w-5 h-5" />
               </div>
               <span className="font-display font-extrabold text-xl text-white tracking-tight">
-                Pharm<span className="text-blue-400">dbm</span>
+                Pharma<span className="text-blue-400">Paper</span>
               </span>
             </div>
             <p className="text-xs text-slate-500 max-w-sm">
               Your Gateway to Excellence in Pharmacy Education. Free, high-quality, syllabus-oriented lecture notes for B.Pharm & D.Pharm students.
             </p>
             <p className="text-xs text-slate-500 mt-2">
-              &copy; {new Date().getFullYear()} Pharmdbm. All rights reserved.
+              &copy; {new Date().getFullYear()} PharmaPaper. All rights reserved.
             </p>
           </div>
 

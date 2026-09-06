@@ -3,9 +3,9 @@ import LegalPageLayout from "@/components/LegalPageLayout";
 import { contactUs } from "@/lib/legalContent";
 
 export const metadata: Metadata = {
-  title: "Contact Us | PharmPaper",
+  title: "Contact Us | PharmaPaper",
   description:
-    "Get in touch with PharmPaper support. We help with accounts, payments, refunds, technical issues, and more.",
+    "Get in touch with PharmaPaper support. We help with accounts, payments, refunds, technical issues, and more.",
 };
 
 export default function ContactPage() {

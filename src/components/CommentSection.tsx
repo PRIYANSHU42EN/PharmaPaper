@@ -20,13 +20,36 @@ export default function CommentSection({
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState("");
   const [commentText, setCommentText] = useState("");
+  const [honeypot, setHoneypot] = useState(""); // Anti-spam honeypot
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // 1. Anti-spam Honeypot Check: bots fill hidden fields, human users don't
+    if (honeypot.trim() !== "") {
+      console.warn("Spam detected via honeypot field.");
+      setStatusMessage({ type: "success", text: "Comment submitted successfully! It will appear once approved by our team." });
+      setCommentText("");
+      return;
+    }
+
+    // 2. Client-side Rate Limiting (30-second cooldown)
+    const lastSubmitTime = typeof window !== "undefined" ? localStorage.getItem("last_comment_ts") : null;
+    if (lastSubmitTime && Date.now() - parseInt(lastSubmitTime, 10) < 30000) {
+      const waitSeconds = Math.ceil((30000 - (Date.now() - parseInt(lastSubmitTime, 10))) / 1000);
+      setStatusMessage({ type: "error", text: `Please wait ${waitSeconds} seconds before posting another comment.` });
+      return;
+    }
+
     if (!name.trim() || !email.trim() || !commentText.trim()) {
       setStatusMessage({ type: "error", text: "Please fill in all required fields (Name, Email, Comment)." });
+      return;
+    }
+
+    if (commentText.trim().length < 5) {
+      setStatusMessage({ type: "error", text: "Comment is too short. Please provide meaningful feedback or a question." });
       return;
     }
 
@@ -45,6 +68,9 @@ export default function CommentSection({
     setIsSubmitting(false);
 
     if (res.success) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("last_comment_ts", Date.now().toString());
+      }
       setStatusMessage({ type: "success", text: res.message });
       setCommentText("");
       setName("");
@@ -87,6 +113,18 @@ export default function CommentSection({
             <span>{statusMessage.text}</span>
           </div>
         )}
+
+        {/* Anti-Spam Hidden Honeypot */}
+        <div className="hidden" aria-hidden="true" style={{ display: "none" }}>
+          <input
+            type="text"
+            name="hp_field_check"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>

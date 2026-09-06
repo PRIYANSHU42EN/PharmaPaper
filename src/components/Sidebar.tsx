@@ -83,15 +83,21 @@ export default function Sidebar({ recentPosts = [] }: SidebarProps) {
                 href={`/posts/${post.slug}`}
                 className="block py-3 group first:pt-0 last:pb-0"
               >
-                <h4 className="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
-                  {post.title}
-                </h4>
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase ${
+                    post.category === "Exam Guide" 
+                      ? "bg-purple-100 text-purple-700" 
+                      : "bg-blue-100 text-blue-700"
+                  }`}>
+                    {post.category || "Career"}
+                  </span>
                   <span className="text-[11px] text-slate-400">
                     {post.published_at ? new Date(post.published_at).toLocaleDateString() : "Article"}
                   </span>
-                  <span className="text-[11px] text-blue-600 font-medium group-hover:underline">Read article &rarr;</span>
                 </div>
+                <h4 className="text-sm font-semibold text-slate-800 group-hover:text-blue-600 transition-colors leading-snug line-clamp-2">
+                  {post.title}
+                </h4>
               </Link>
             ))}
           </div>
@@ -106,7 +112,7 @@ export default function Sidebar({ recentPosts = [] }: SidebarProps) {
         <h4 className="text-sm font-bold text-slate-900 mb-1">Join Our Student Community</h4>
         <p className="text-xs text-slate-600 mb-3">Get instant updates whenever new semester notes and question papers are uploaded.</p>
         <a
-          href="https://t.me/pharmdbm"
+          href="https://t.me/pharmapaper"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#229ED9] text-white rounded-xl text-xs font-semibold hover:bg-[#1b85b8] transition-colors shadow-sm"

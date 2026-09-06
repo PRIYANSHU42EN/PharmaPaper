@@ -12,7 +12,11 @@ export default function ModerationPage() {
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/v1/admin/moderation?tab=${tab}`);
+      const res = await fetch(`/api/v1/admin/moderation?tab=${tab}`, {
+        headers: {
+          "x-admin-passcode": "admin123",
+        },
+      });
       const json = await res.json();
       if (json.success) setComments(json.data.comments || []);
     } catch (err) {
@@ -32,7 +36,10 @@ export default function ModerationPage() {
     try {
       const res = await fetch(`/api/v1/admin/moderation`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-admin-passcode": "admin123",
+        },
         body: JSON.stringify({ id, action })
       });
       if (res.ok) {
@@ -51,22 +58,22 @@ export default function ModerationPage() {
             <ShieldAlert className="w-6 h-6 text-brand-light" />
             Comment Moderation
           </h1>
-          <p className="text-muted font-mono text-sm mt-1">Review flagged and pending user comments</p>
+          <p className="text-muted font-mono text-sm mt-1">Review student comments, approve valid questions, or delete spam</p>
         </div>
       </div>
 
       <div className="flex border-b border-white/10">
-        {["pending", "reported"].map(t => (
+        {["pending", "approved"].map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-6 py-3 font-mono text-sm border-b-2 transition-colors capitalize ${
               tab === t 
-                ? "border-brand-light text-brand-light" 
+                ? "border-brand-light text-brand-light font-bold" 
                 : "border-transparent text-slate-400 hover:text-white"
             }`}
           >
-            {t} Queue
+            {t} ({t === "pending" ? "Awaiting Approval" : "Live on Site"})
           </button>
         ))}
       </div>

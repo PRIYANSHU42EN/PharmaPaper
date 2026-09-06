@@ -61,20 +61,10 @@ export default function TimedDownloadButton({
     }, 1000);
   }
 
-  async function handleFinalDownload() {
-    if (state !== "ready" && state !== "downloaded") return;
-
-    // Record in download_logs analytics table
-    try {
-      await logDownload(unitId);
-    } catch (e) {
-      console.error("Failed to log download", e);
-    }
-
+  function handleFinalDownload() {
+    // Record in download_logs analytics table (non-blocking)
+    logDownload(unitId).catch((e) => console.error("Failed to log download:", e));
     setState("downloaded");
-
-    // Open file URL safely
-    window.open(fileUrl, "_blank", "noopener,noreferrer");
   }
 
   // Calculate percentage of circular countdown
@@ -167,22 +157,25 @@ export default function TimedDownloadButton({
             </motion.div>
           )}
 
-          {/* 3. READY STATE */}
+          {/* 3. READY STATE — REAL ANCHOR TO PREVENT POPUP BLOCKING & HANGING */}
           {(state === "ready" || state === "downloaded") && (
-            <motion.button
+            <motion.a
               key="ready"
+              href={fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.2 }}
               onClick={handleFinalDownload}
-              className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-extrabold text-base shadow-lg shadow-emerald-600/30 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 animate-pulse cursor-pointer"
+              className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-extrabold text-base shadow-lg shadow-emerald-600/30 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 animate-pulse cursor-pointer no-underline text-center"
               aria-label={`Download ${unitTitle} PDF`}
             >
               <CheckCircle2 className="w-5 h-5" />
               <span>{state === "downloaded" ? "Download Again" : "Download Now"}</span>
               <ExternalLink className="w-4 h-4 ml-1 opacity-80" />
-            </motion.button>
+            </motion.a>
           )}
         </AnimatePresence>
       </div>

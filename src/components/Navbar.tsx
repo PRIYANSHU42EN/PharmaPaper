@@ -38,8 +38,8 @@ export default function Navbar() {
   ];
 
   const dpharmYears = [
-    { name: "1st Year", slug: "year-1" },
-    { name: "2nd Year", slug: "year-2" },
+    { name: "1st Year", slug: "1st-year" },
+    { name: "2nd Year", slug: "2nd-year" },
   ];
 
   return (
@@ -53,7 +53,7 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col">
               <span className="font-display font-extrabold text-2xl sm:text-3xl tracking-tight text-slate-950">
-                Pharm<span className="text-blue-700">dbm</span>
+                Pharma<span className="text-blue-700">Paper</span>
               </span>
               <span className="hidden sm:inline-block text-[11px] font-medium text-slate-800 -mt-1 tracking-tight">
                 Your Gateway to Excellence in Pharmacy Education

@@ -21,9 +21,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Pharmdbm — Your Gateway to Excellence in Pharmacy Education",
+  title: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
   description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
-  keywords: ["Pharmdbm", "pharmacy notes", "B.Pharm notes", "D.Pharm notes", "pharmacy lecture notes"],
+  keywords: ["PharmaPaper", "pharmacy notes", "B.Pharm notes", "D.Pharm notes", "pharmacy lecture notes"],
 };
 
 export default function RootLayout({

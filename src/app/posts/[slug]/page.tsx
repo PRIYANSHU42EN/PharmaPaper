@@ -13,11 +13,11 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
-  if (!post) return { title: "Post Not Found — Pharmdbm" };
+  if (!post) return { title: "Post Not Found — PharmaPaper" };
 
   return {
-    title: `${post.title} | Pharmdbm`,
-    description: post.excerpt || "Read this comprehensive guide on Pharmdbm.",
+    title: `${post.title} | PharmaPaper`,
+    description: post.excerpt || "Read this comprehensive guide on PharmaPaper.",
   };
 }
 

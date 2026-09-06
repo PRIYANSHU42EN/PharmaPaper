@@ -1,9 +1,9 @@
 ---
-name: pharmdbm-app-builder
-description: Use this skill whenever building, extending, or fixing the Pharmdbm React + Supabase notes platform. Covers project conventions, data model, and the timed-download feature so any AI agent working on this repo stays consistent with prior decisions. Trigger on any request touching semesters, subjects, units, downloads, the admin dashboard, or the countdown-download button.
+name: pharmapaper-app-builder
+description: Use this skill whenever building, extending, or fixing the PharmaPaper React + Supabase notes platform. Covers project conventions, data model, and the timed-download feature so any AI agent working on this repo stays consistent with prior decisions. Trigger on any request touching semesters, subjects, units, downloads, the admin dashboard, or the countdown-download button.
 ---
 
-# Pharmdbm App — Agent Conventions
+# PharmaPaper App — Agent Conventions
 
 Read `design.md` and `tech.md` in this same folder first — they hold the visual spec and the full technical spec (schema, routes, stack). This file holds the *rules* to follow while building or modifying the codebase, not the spec itself.
 

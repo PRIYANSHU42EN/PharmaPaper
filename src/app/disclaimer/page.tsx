@@ -3,8 +3,8 @@ import LegalPageLayout from "@/components/LegalPageLayout";
 import { disclaimer } from "@/lib/legalContent";
 
 export const metadata: Metadata = {
-  title: "Disclaimer | Pharmdbm",
-  description: "Educational disclaimer regarding notes and resources provided on Pharmdbm.",
+  title: "Disclaimer | PharmaPaper",
+  description: "Educational disclaimer regarding notes and resources provided on PharmaPaper.",
 };
 
 export default function DisclaimerPage() {

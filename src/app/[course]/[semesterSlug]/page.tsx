@@ -22,11 +22,11 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { course, semesterSlug } = await params;
   const semester = await getSemesterBySlug(course, semesterSlug);
-  if (!semester) return { title: "Semester Not Found — Pharmdbm" };
+  if (!semester) return { title: "Semester Not Found — PharmaPaper" };
 
   const courseLabel = course.toUpperCase() === "BPHARM" ? "B.Pharm" : "D.Pharm";
   return {
-    title: `${courseLabel} ${semester.title || semester.name} Notes – All Subjects | Pharmdbm`,
+    title: `${courseLabel} ${semester.title || semester.name} Notes – All Subjects | PharmaPaper`,
     description: `Download verified unit-wise lecture notes, summaries, and PCI syllabus study material for ${courseLabel} ${semester.title || semester.name}.`,
   };
 }

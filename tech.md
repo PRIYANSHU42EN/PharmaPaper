@@ -1,4 +1,4 @@
-# tech.md — Pharmdbm Technical Specification
+# tech.md — PharmaPaper Technical Specification
 
 ## Stack
 - **Frontend:** React 18 + Vite, React Router v6, Tailwind CSS, lucide-react, Framer Motion (optional)

@@ -26,17 +26,17 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { course, semesterSlug, subjectSlug, unitSlug } = await params;
   const semester = await getSemesterBySlug(course, semesterSlug);
-  if (!semester) return { title: "Unit Not Found — Pharmdbm" };
+  if (!semester) return { title: "Unit Not Found — PharmaPaper" };
 
   const subject = await getSubjectBySlug(semester.id, subjectSlug);
-  if (!subject) return { title: "Unit Not Found — Pharmdbm" };
+  if (!subject) return { title: "Unit Not Found — PharmaPaper" };
 
   const unit = await getUnitBySlug(subject.id, unitSlug);
-  if (!unit) return { title: "Unit Not Found — Pharmdbm" };
+  if (!unit) return { title: "Unit Not Found — PharmaPaper" };
 
   const courseLabel = course.toUpperCase() === "BPHARM" ? "B.Pharm" : "D.Pharm";
   return {
-    title: `${unit.title} Notes – ${subject.name} | Pharmdbm`,
+    title: `${unit.title} Notes – ${subject.name} | PharmaPaper`,
     description: `Download verified PDF notes and revision guide for ${unit.title} in ${subject.name} (${courseLabel} ${semester.title || semester.name}).`,
   };
 }

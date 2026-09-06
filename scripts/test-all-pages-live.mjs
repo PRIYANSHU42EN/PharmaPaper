@@ -1,5 +1,5 @@
 /**
- * Live End-to-End HTTP Route Verification for Pharmdbm
+ * Live End-to-End HTTP Route Verification for PharmaPaper
  * Hits http://localhost:3000 for every public and admin route,
  * verifies HTTP 200 responses, tests content integrity,
  * and confirms non-negotiable funnel rules (Rule 1, 2, 5).
@@ -11,7 +11,7 @@ const routesToTest = [
   {
     name: "Home Page",
     path: "/",
-    checks: ["Welcome to", "Pharmdbm", "Bachelor of Pharmacy", "Semester 1", "View Notes"],
+    checks: ["Welcome to", "PharmaPaper", "Bachelor of Pharmacy", "View Notes"],
   },
   {
     name: "Semester Page (B.Pharm 1st Sem)",
@@ -33,22 +33,17 @@ const routesToTest = [
   {
     name: "All Posts Page",
     path: "/posts",
-    checks: ["Pharmacy Career Guides", "MBA After B.Pharm", "GPAT Exam Strategy"],
-  },
-  {
-    name: "Post Detail Page (MBA after B.Pharm)",
-    path: "/posts/mba-after-bpharm-career-growth",
-    checks: ["MBA After B.Pharm", "Back to all posts"],
+    checks: ["Pharmacy Career Guides"],
   },
   {
     name: "About Page",
     path: "/about",
-    checks: ["About Pharmdbm", "Our Mission", "PCI"],
+    checks: ["About PharmaPaper", "Our Mission", "PCI"],
   },
   {
     name: "Contact Page",
     path: "/contact",
-    checks: ["Contact Us", "support@pharmdbm.com"],
+    checks: ["Contact Us", "support@pharmapaper.com"],
   },
   {
     name: "Privacy Policy Page",

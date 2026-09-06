@@ -3,9 +3,9 @@ import LegalPageLayout from "@/components/LegalPageLayout";
 import { privacyPolicy } from "@/lib/legalContent";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | PharmPaper",
+  title: "Privacy Policy | PharmaPaper",
   description:
-    "Learn how PharmPaper (pharmapaper.com) collects, uses, and protects your personal data. Read our full Privacy Policy.",
+    "Learn how PharmaPaper (pharmapaper.com) collects, uses, and protects your personal data. Read our full Privacy Policy.",
 };
 
 export default function PrivacyPage() {

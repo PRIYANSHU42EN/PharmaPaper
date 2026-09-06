@@ -41,7 +41,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handlePasscodeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.trim() === "admin123" || passcode.trim() === "pharmdbm") {
+    const normalized = passcode.trim().toLowerCase();
+    if (normalized === "admin123" || normalized === "pharmapaper" || normalized === "pharmdbm") {
       localStorage.setItem("pharmdbm_admin_session", "unlocked");
       setDevAdminAllowed(true);
       setErrorMsg("");
@@ -78,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Lock className="w-7 h-7" />
           </div>
 
-          <h2 className="text-2xl font-display font-bold text-white tracking-wide">Pharmdbm Admin Panel</h2>
+          <h2 className="text-2xl font-display font-bold text-white tracking-wide">PharmaPaper Admin Panel</h2>
           <p className="text-slate-400 font-sans text-xs mt-1.5 mb-6">
             Sign in to manage curriculum notes, upload PDFs, and moderate student comments.
           </p>
@@ -141,7 +142,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <div>
               <h1 className="font-display font-bold text-white text-lg leading-tight">Admin</h1>
-              <p className="text-[10px] uppercase font-mono text-amber-400 tracking-widest">Pharmdbm</p>
+              <p className="text-[10px] uppercase font-mono text-amber-400 tracking-widest">PharmaPaper</p>
             </div>
           </Link>
         </div>

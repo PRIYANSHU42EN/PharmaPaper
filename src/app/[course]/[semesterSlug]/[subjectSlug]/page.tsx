@@ -26,14 +26,14 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { course, semesterSlug, subjectSlug } = await params;
   const semester = await getSemesterBySlug(course, semesterSlug);
-  if (!semester) return { title: "Subject Not Found — Pharmdbm" };
+  if (!semester) return { title: "Subject Not Found — PharmaPaper" };
 
   const subject = await getSubjectBySlug(semester.id, subjectSlug);
-  if (!subject) return { title: "Subject Not Found — Pharmdbm" };
+  if (!subject) return { title: "Subject Not Found — PharmaPaper" };
 
   const courseLabel = course.toUpperCase() === "BPHARM" ? "B.Pharm" : "D.Pharm";
   return {
-    title: `${subject.name} – Notes (${courseLabel} ${semester.title || semester.name}) | Pharmdbm`,
+    title: `${subject.name} – Notes (${courseLabel} ${semester.title || semester.name}) | PharmaPaper`,
     description: `Complete unit-wise lecture notes, summaries, and PCI study guide for ${subject.name} in ${courseLabel} ${semester.title || semester.name}.`,
   };
 }
