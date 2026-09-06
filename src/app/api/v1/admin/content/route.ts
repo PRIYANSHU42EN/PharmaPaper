@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireRole } from "@/lib/permissions";
 import { success, error as apiError } from "@/lib/api";
+import { revalidateUnitHierarchy, revalidateSubjectHierarchy, revalidatePost } from "@/lib/revalidate";
 
 import { verifyMasterAdminPassword } from "@/lib/admin-auth";
 
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (error) return apiError(500, error.message);
+      await revalidateSubjectHierarchy(supabase, id);
       return success({ subject: data });
     }
 
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (error) return apiError(500, error.message);
+      await revalidateUnitHierarchy(supabase, id);
       return success({ unit: data });
     }
 
@@ -65,11 +68,12 @@ export async function POST(req: NextRequest) {
       if (!title?.trim() || !slug?.trim()) {
         return apiError(400, "Title and slug are required");
       }
+      const finalSlug = slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const { data, error } = await supabase
         .from("posts")
         .insert({
           title: title.trim(),
-          slug: slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          slug: finalSlug,
           excerpt: excerpt?.trim() || "",
           content_html: content_html?.trim() || "",
           category: category?.trim() || "Career",
@@ -79,6 +83,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (error) return apiError(500, error.message);
+      revalidatePost(finalSlug);
       return success({ post: data });
     }
 
@@ -105,6 +110,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (error) return apiError(500, error.message);
+      revalidatePost(data.slug);
       return success({ post: data });
     }
 
@@ -113,6 +119,7 @@ export async function POST(req: NextRequest) {
       if (!id) return apiError(400, "Post ID is required");
       const { error } = await supabase.from("posts").delete().eq("id", id);
       if (error) return apiError(500, error.message);
+      revalidatePost();
       return success({ deleted: true });
     }
 
@@ -131,6 +138,9 @@ export async function POST(req: NextRequest) {
         .select()
         .single();
       if (error) return apiError(500, error.message);
+      if (data?.id) {
+        await revalidateSubjectHierarchy(supabase, data.id);
+      }
       return success({ subject: data });
     }
 
@@ -139,6 +149,7 @@ export async function POST(req: NextRequest) {
       if (!id) return apiError(400, "Subject ID is required");
       const { error } = await supabase.from("subjects").delete().eq("id", id);
       if (error) return apiError(500, error.message);
+      revalidatePost(); // also refreshes sitemap and home
       return success({ deleted: true });
     }
 
@@ -157,6 +168,9 @@ export async function POST(req: NextRequest) {
         .select()
         .single();
       if (error) return apiError(500, error.message);
+      if (data?.id) {
+        await revalidateUnitHierarchy(supabase, data.id);
+      }
       return success({ unit: data });
     }
 
@@ -165,12 +179,19 @@ export async function POST(req: NextRequest) {
       if (!id) return apiError(400, "Unit ID is required");
       const { error } = await supabase.from("units").delete().eq("id", id);
       if (error) return apiError(500, error.message);
+      revalidatePost(); // also refreshes sitemap and home
       return success({ deleted: true });
     }
 
     if (action === "delete-download" || action === "remove-pdf") {
       const { downloadId, unitId } = body;
       if (!downloadId && !unitId) return apiError(400, "downloadId or unitId is required");
+
+      let resolvedUnitId = unitId;
+      if (!resolvedUnitId && downloadId) {
+        const { data: dl } = await supabase.from("downloads").select("unit_id").eq("id", downloadId).single();
+        resolvedUnitId = dl?.unit_id;
+      }
 
       let query = supabase.from("downloads").delete();
       if (downloadId) {
@@ -180,7 +201,22 @@ export async function POST(req: NextRequest) {
       }
       const { error } = await query;
       if (error) return apiError(500, error.message);
+
+      if (resolvedUnitId) {
+        await revalidateUnitHierarchy(supabase, resolvedUnitId);
+      }
       return success({ deleted: true });
+    }
+
+    if (action === "revalidate") {
+      const { unitId, subjectId } = body;
+      if (unitId) {
+        await revalidateUnitHierarchy(supabase, unitId);
+      }
+      if (subjectId) {
+        await revalidateSubjectHierarchy(supabase, subjectId);
+      }
+      return success({ revalidated: true });
     }
 
     return apiError(400, "Invalid action");

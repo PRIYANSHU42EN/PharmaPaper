@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireRole } from "@/lib/permissions";
+import { revalidateUnitHierarchy } from "@/lib/revalidate";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
@@ -150,13 +151,15 @@ export async function POST(req: Request) {
       downloadRecord = inserted;
     }
 
-    // Build public page URL
+    // On-demand revalidation: immediately bust cache so public pages show the new PDF
     const subjectObj: any = unit.subjects;
     const rawCourseCode = subjectObj?.semesters?.courses?.code?.toLowerCase() || "bpharm";
     const courseCode = rawCourseCode.replace("-", ""); // Ensure 'bpharm' or 'dpharm'
     const semSlug = subjectObj?.semesters?.slug || "1st-semester";
     const subSlug = subjectObj?.slug || "subject";
     const publicPageUrl = `/${courseCode}/${semSlug}/${subSlug}/${unit.slug}`;
+
+    await revalidateUnitHierarchy(supabaseAdmin, unitId);
 
     return NextResponse.json({
       success: true,
