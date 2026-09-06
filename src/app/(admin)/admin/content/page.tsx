@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { 
   Folder, 
   BookOpen, 
   Layers, 
-  Download, 
   Plus, 
   Search, 
   UploadCloud, 
@@ -22,11 +21,15 @@ import {
   Eye,
   Trash2,
   FileUp,
-  ArrowRight,
   Pencil,
   Tag,
   Calendar,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  ChevronRight,
+  Filter,
+  CheckCircle,
+  FileDown
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -52,6 +55,34 @@ interface UnitOption {
   subject_id: string;
 }
 
+interface JoinedUnit {
+  id: string;
+  unit_number: number;
+  title: string;
+  slug: string;
+  subject_id: string;
+  subjects?: {
+    id: string;
+    name: string;
+    slug: string;
+    order_index: number;
+    semester_id: string;
+    semesters?: {
+      id: string;
+      number: number;
+      name: string;
+      slug: string;
+    };
+  };
+  downloads?: Array<{
+    id: string;
+    file_name: string;
+    file_url: string;
+    file_size_kb?: number;
+    uploaded_at?: string;
+  }>;
+}
+
 function getAdminPasscode(): string {
   if (typeof window !== "undefined") {
     return (
@@ -64,10 +95,15 @@ function getAdminPasscode(): string {
 }
 
 export default function ContentManagementPage() {
-  const [activeTab, setActiveTab] = useState<"semesters" | "subjects" | "units" | "downloads" | "posts">("units");
+  const [activeTab, setActiveTab] = useState<"units-notes" | "subjects" | "semesters" | "posts">("units-notes");
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [search, setSearch] = useState("");
+  const [onlyMissingPdf, setOnlyMissingPdf] = useState(false);
+
+  // Accordion expansion state for Units & Notes tree
+  const [expandedSemesters, setExpandedSemesters] = useState<Record<string, boolean>>({});
+  const [expandedSubjects, setExpandedSubjects] = useState<Record<string, boolean>>({});
 
   // Inline rename state for Subjects and Units
   const [inlineEditId, setInlineEditId] = useState<string | null>(null);
@@ -117,8 +153,7 @@ export default function ContentManagementPage() {
   const [postError, setPostError] = useState<string | null>(null);
 
   const TABS = [
-    { id: "units", name: "Units & PDFs", icon: Layers },
-    { id: "downloads", name: "All PDF Downloads", icon: Download },
+    { id: "units-notes", name: "Units & Notes", icon: Layers },
     { id: "subjects", name: "Subjects", icon: BookOpen },
     { id: "semesters", name: "Semesters", icon: Folder },
     { id: "posts", name: "Career & Exam Posts", icon: FileText },
@@ -145,7 +180,27 @@ export default function ContentManagementPage() {
   async function loadData() {
     setLoading(true);
     try {
-      if (activeTab === "semesters") {
+      if (activeTab === "units-notes") {
+        const { data: u, error: uErr } = await supabase
+          .from("units")
+          .select(`
+            id, unit_number, title, slug, subject_id,
+            subjects (
+              id, name, slug, order_index, semester_id,
+              semesters (
+                id, number, name, slug
+              )
+            ),
+            downloads (
+              id, file_name, file_url, file_size_kb, uploaded_at
+            )
+          `)
+          .order("unit_number", { ascending: true })
+          .limit(500);
+
+        if (uErr) throw uErr;
+        setData(u || []);
+      } else if (activeTab === "semesters") {
         const { data: sems } = await supabase
           .from("semesters")
           .select("id, number, name, slug, courses(code, name)")
@@ -158,20 +213,6 @@ export default function ContentManagementPage() {
           .order("order_index", { ascending: true })
           .limit(100);
         setData(subs || []);
-      } else if (activeTab === "units") {
-        const { data: u } = await supabase
-          .from("units")
-          .select("id, unit_number, title, slug, subject_id, subjects(id, name, semesters(id, name)), downloads(id, file_name, file_url, file_size_kb)")
-          .order("title", { ascending: true })
-          .limit(350);
-        setData(u || []);
-      } else if (activeTab === "downloads") {
-        const { data: downs } = await supabase
-          .from("downloads")
-          .select("id, file_name, file_url, file_size_kb, uploaded_at, units(id, title, unit_number, subjects(id, name, semesters(id, name)))")
-          .order("uploaded_at", { ascending: false })
-          .limit(350);
-        setData(downs || []);
       } else if (activeTab === "posts") {
         const { data: postsData } = await supabase
           .from("posts")
@@ -191,6 +232,196 @@ export default function ContentManagementPage() {
     loadData();
   }, [activeTab]);
 
+  // Hierarchical tree transformation for Units & Notes screen
+  const { semesterTree, totalUnitsCount, attachedUnitsCount, missingUnitsCount } = useMemo(() => {
+    if (activeTab !== "units-notes" || !Array.isArray(data)) {
+      return { semesterTree: [], totalUnitsCount: 0, attachedUnitsCount: 0, missingUnitsCount: 0 };
+    }
+
+    const unitsList: JoinedUnit[] = data;
+    let total = 0;
+    let attached = 0;
+
+    // Grouping map: semesterId -> { semesterInfo, subjectsMap: subjectId -> { subjectInfo, units: [] } }
+    const semMap = new Map<string, {
+      id: string;
+      name: string;
+      number: number;
+      slug: string;
+      subjects: Map<string, {
+        id: string;
+        name: string;
+        slug: string;
+        order_index: number;
+        units: JoinedUnit[];
+      }>;
+    }>();
+
+    for (const unit of unitsList) {
+      total++;
+      const hasDownload = Boolean(unit.downloads && unit.downloads.length > 0 && unit.downloads[0].file_url);
+      if (hasDownload) attached++;
+
+      const sem = unit.subjects?.semesters;
+      const semId = sem?.id || "unassigned-semester";
+      const semName = sem?.name || "Unassigned Semester";
+      const semNum = sem?.number ?? 999;
+      const semSlug = sem?.slug || "";
+
+      if (!semMap.has(semId)) {
+        semMap.set(semId, {
+          id: semId,
+          name: semName,
+          number: semNum,
+          slug: semSlug,
+          subjects: new Map(),
+        });
+      }
+
+      const semNode = semMap.get(semId)!;
+      const sub = unit.subjects;
+      const subId = sub?.id || "unassigned-subject";
+      const subName = sub?.name || "Unassigned Subject";
+      const subSlug = sub?.slug || "";
+      const subOrder = sub?.order_index ?? 999;
+
+      if (!semNode.subjects.has(subId)) {
+        semNode.subjects.set(subId, {
+          id: subId,
+          name: subName,
+          slug: subSlug,
+          order_index: subOrder,
+          units: [],
+        });
+      }
+
+      semNode.subjects.get(subId)!.units.push(unit);
+    }
+
+    // Convert map to sorted tree
+    const tree = Array.from(semMap.values())
+      .map((sem) => {
+        const sortedSubjects = Array.from(sem.subjects.values())
+          .map((sub) => {
+            const sortedUnits = [...sub.units].sort((a, b) => a.unit_number - b.unit_number);
+            const subAttached = sortedUnits.filter((u) => u.downloads && u.downloads.length > 0).length;
+            return {
+              ...sub,
+              units: sortedUnits,
+              totalUnits: sortedUnits.length,
+              attachedUnits: subAttached,
+            };
+          })
+          .sort((a, b) => a.order_index - b.order_index || a.name.localeCompare(b.name));
+
+        const semTotal = sortedSubjects.reduce((acc, s) => acc + s.totalUnits, 0);
+        const semAttached = sortedSubjects.reduce((acc, s) => acc + s.attachedUnits, 0);
+
+        return {
+          id: sem.id,
+          name: sem.name,
+          number: sem.number,
+          slug: sem.slug,
+          subjects: sortedSubjects,
+          totalUnits: semTotal,
+          attachedUnits: semAttached,
+        };
+      })
+      .sort((a, b) => a.number - b.number || a.name.localeCompare(b.name));
+
+    return {
+      semesterTree: tree,
+      totalUnitsCount: total,
+      attachedUnitsCount: attached,
+      missingUnitsCount: total - attached,
+    };
+  }, [data, activeTab]);
+
+  // Filtered Tree based on search query and "only missing PDF" toggle
+  const filteredTree = useMemo(() => {
+    if (activeTab !== "units-notes") return [];
+
+    const q = search.trim().toLowerCase();
+
+    return semesterTree
+      .map((sem) => {
+        const matchingSubjects = sem.subjects
+          .map((sub) => {
+            const matchingUnits = sub.units.filter((unit) => {
+              const hasPdf = Boolean(unit.downloads && unit.downloads.length > 0);
+              if (onlyMissingPdf && hasPdf) return false;
+
+              if (!q) return true;
+
+              const titleMatch = unit.title?.toLowerCase().includes(q);
+              const numMatch = String(unit.unit_number).includes(q);
+              const subMatch = sub.name?.toLowerCase().includes(q);
+              const semMatch = sem.name?.toLowerCase().includes(q);
+              return titleMatch || numMatch || subMatch || semMatch;
+            });
+
+            if (matchingUnits.length === 0) return null;
+
+            return {
+              ...sub,
+              units: matchingUnits,
+            };
+          })
+          .filter(Boolean) as typeof sem.subjects;
+
+        if (matchingSubjects.length === 0) return null;
+
+        return {
+          ...sem,
+          subjects: matchingSubjects,
+        };
+      })
+      .filter(Boolean) as typeof semesterTree;
+  }, [semesterTree, search, onlyMissingPdf, activeTab]);
+
+  // Auto-expand tree when searching
+  useEffect(() => {
+    if (search.trim()) {
+      const semExp: Record<string, boolean> = {};
+      const subExp: Record<string, boolean> = {};
+      filteredTree.forEach((sem) => {
+        semExp[sem.id] = true;
+        sem.subjects.forEach((sub) => {
+          subExp[sub.id] = true;
+        });
+      });
+      setExpandedSemesters(semExp);
+      setExpandedSubjects(subExp);
+    }
+  }, [search, filteredTree]);
+
+  // Accordion Toggles
+  function toggleSemester(id: string) {
+    setExpandedSemesters((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  function toggleSubject(id: string) {
+    setExpandedSubjects((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  function expandAll() {
+    const semExp: Record<string, boolean> = {};
+    const subExp: Record<string, boolean> = {};
+    semesterTree.forEach((sem) => {
+      semExp[sem.id] = true;
+      sem.subjects.forEach((sub) => {
+        subExp[sub.id] = true;
+      });
+    });
+    setExpandedSemesters(semExp);
+    setExpandedSubjects(subExp);
+  }
+
+  function collapseAll() {
+    setExpandedSemesters({});
+    setExpandedSubjects({});
+  }
+
   // Inline Rename Handlers
   function startInlineEdit(id: string, currentVal: string) {
     setInlineEditId(id);
@@ -205,6 +436,7 @@ export default function ContentManagementPage() {
     }
     setIsSavingInline(true);
     try {
+      const isSubject = activeTab === "subjects";
       const res = await fetch("/api/v1/admin/content", {
         method: "POST",
         headers: {
@@ -212,24 +444,24 @@ export default function ContentManagementPage() {
           "x-admin-passcode": getAdminPasscode(),
         },
         body: JSON.stringify({
-          action: activeTab === "subjects" ? "rename-subject" : "rename-unit",
+          action: isSubject ? "rename-subject" : "rename-unit",
           id,
-          [activeTab === "subjects" ? "name" : "title"]: trimmed,
+          [isSubject ? "name" : "title"]: trimmed,
         }),
       });
       if (res.ok) {
         setData((prev) =>
           prev.map((item) =>
             item.id === id
-              ? { ...item, [activeTab === "subjects" ? "name" : "title"]: trimmed }
+              ? { ...item, [isSubject ? "name" : "title"]: trimmed }
               : item
           )
         );
-        if (activeTab === "subjects") {
+        if (isSubject) {
           setAllSubjects((prev) =>
             prev.map((s) => (s.id === id ? { ...s, name: trimmed } : s))
           );
-        } else if (activeTab === "units") {
+        } else {
           setAllUnits((prev) =>
             prev.map((u) => (u.id === id ? { ...u, title: trimmed } : u))
           );
@@ -240,6 +472,41 @@ export default function ContentManagementPage() {
     } finally {
       setIsSavingInline(false);
       setInlineEditId(null);
+    }
+  }
+
+  // Remove / Unlink PDF Download Handler
+  async function handleDeleteDownload(downloadId: string, unitId: string, unitTitle: string) {
+    if (!confirm(`Are you sure you want to remove the PDF attached to "${unitTitle}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/v1/admin/content", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-passcode": getAdminPasscode(),
+        },
+        body: JSON.stringify({
+          action: "delete-download",
+          downloadId,
+          unitId,
+        }),
+      });
+
+      if (res.ok) {
+        setData((prev) =>
+          prev.map((u) =>
+            u.id === unitId ? { ...u, downloads: [] } : u
+          )
+        );
+      } else {
+        alert("Failed to remove PDF file from unit.");
+      }
+    } catch (err) {
+      console.error("Failed to remove PDF:", err);
+      alert("Error removing PDF file.");
     }
   }
 
@@ -295,7 +562,7 @@ export default function ContentManagementPage() {
           "Content-Type": "application/json",
           "x-admin-passcode": getAdminPasscode(),
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload }),
       });
       const result = await res.json();
       if (!res.ok || result.error) {
@@ -330,10 +597,10 @@ export default function ContentManagementPage() {
     }
   }
 
-  // Open upload modal with preselected unit
+  // Open upload modal with preselected unit from row
   function openUploadForUnit(unit: any) {
     const subjectId = unit.subjects?.id || unit.subject_id;
-    const semesterId = unit.subjects?.semesters?.id;
+    const semesterId = unit.subjects?.semesters?.id || unit.subjects?.semester_id;
 
     if (semesterId) setSelectedSemesterId(semesterId);
     if (subjectId) setSelectedSubjectId(subjectId);
@@ -462,44 +729,32 @@ export default function ContentManagementPage() {
     xhr.send(formData);
   }
 
-  // Filtered list based on search query
-  const filteredData = data.filter((item) => {
+  // Filtered flat list for other tabs (semesters, subjects, posts)
+  const filteredFlatData = useMemo(() => {
+    if (activeTab === "units-notes") return [];
     const q = search.toLowerCase();
-    if (activeTab === "semesters") {
-      return item.name?.toLowerCase().includes(q) || String(item.number).includes(q);
-    }
-    if (activeTab === "subjects") {
-      return (
-        item.name?.toLowerCase().includes(q) ||
-        item.slug?.toLowerCase().includes(q) ||
-        item.semesters?.name?.toLowerCase().includes(q)
-      );
-    }
-    if (activeTab === "units") {
-      return (
-        item.title?.toLowerCase().includes(q) ||
-        item.slug?.toLowerCase().includes(q) ||
-        item.subjects?.name?.toLowerCase().includes(q) ||
-        String(item.unit_number).includes(q)
-      );
-    }
-    if (activeTab === "downloads") {
-      return (
-        item.file_name?.toLowerCase().includes(q) ||
-        item.units?.title?.toLowerCase().includes(q) ||
-        item.units?.subjects?.name?.toLowerCase().includes(q)
-      );
-    }
-    if (activeTab === "posts") {
-      return (
-        item.title?.toLowerCase().includes(q) ||
-        item.slug?.toLowerCase().includes(q) ||
-        item.category?.toLowerCase().includes(q) ||
-        item.excerpt?.toLowerCase().includes(q)
-      );
-    }
-    return true;
-  });
+    return data.filter((item) => {
+      if (activeTab === "semesters") {
+        return item.name?.toLowerCase().includes(q) || String(item.number).includes(q);
+      }
+      if (activeTab === "subjects") {
+        return (
+          item.name?.toLowerCase().includes(q) ||
+          item.slug?.toLowerCase().includes(q) ||
+          item.semesters?.name?.toLowerCase().includes(q)
+        );
+      }
+      if (activeTab === "posts") {
+        return (
+          item.title?.toLowerCase().includes(q) ||
+          item.slug?.toLowerCase().includes(q) ||
+          item.category?.toLowerCase().includes(q) ||
+          item.excerpt?.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [data, activeTab, search]);
 
   const availableSubjects = selectedSemesterId
     ? allSubjects.filter((s) => s.semester_id === selectedSemesterId)
@@ -514,9 +769,11 @@ export default function ContentManagementPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-white tracking-wide">Curriculum Content & PDF Management</h1>
+          <h1 className="text-2xl font-display font-bold text-white tracking-wide">
+            Curriculum Content & PDF Notes
+          </h1>
           <p className="text-slate-400 font-mono text-sm mt-1">
-            Upload PDF notes, quick inline rename subjects/units, and manage career & exam guides
+            Organized hierarchy of Semesters, Subjects, and Units with direct PDF attachment and preview
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -552,20 +809,67 @@ export default function ContentManagementPage() {
         </div>
       </div>
 
-      {/* Guide Banner */}
-      <div className="bg-gradient-to-r from-blue-950/60 to-purple-950/60 border border-blue-500/20 rounded-2xl p-5 flex items-start gap-4">
-        <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
-          <FileCheck className="w-5 h-5" />
+      {/* Progress & Upload Overview Banner */}
+      {activeTab === "units-notes" && (
+        <div className="bg-gradient-to-r from-slate-900/90 to-blue-950/60 border border-white/10 rounded-2xl p-5 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/30 shadow-inner">
+                <FileCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-white font-display font-bold text-base sm:text-lg flex items-center gap-2.5">
+                  Curriculum Upload Progress
+                  <span className="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    {totalUnitsCount} Total Units
+                  </span>
+                </h2>
+                <div className="flex items-center gap-3 text-xs font-mono text-slate-400 mt-1">
+                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    {attachedUnitsCount} Attached
+                  </span>
+                  <span>•</span>
+                  <span className="text-amber-400 font-semibold flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    {missingUnitsCount} Missing PDF
+                  </span>
+                  <span>•</span>
+                  <span>
+                    {totalUnitsCount > 0 ? Math.round((attachedUnitsCount / totalUnitsCount) * 100) : 0}% Complete
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Expand / Collapse all toggles */}
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <button
+                onClick={expandAll}
+                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg text-xs font-mono transition-colors border border-white/10"
+              >
+                Expand All
+              </button>
+              <button
+                onClick={collapseAll}
+                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-lg text-xs font-mono transition-colors border border-white/10"
+              >
+                Collapse All
+              </button>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-800/80 rounded-full h-2.5 overflow-hidden mt-4 p-0.5 border border-white/5">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-emerald-400 transition-all duration-500"
+              style={{
+                width: `${totalUnitsCount > 0 ? Math.max((attachedUnitsCount / totalUnitsCount) * 100, 2) : 2}%`,
+              }}
+            />
+          </div>
         </div>
-        <div className="text-xs sm:text-sm text-slate-300 space-y-1">
-          <p className="font-bold text-white">Curriculum Management & Quick Renaming Guide:</p>
-          <ul className="list-disc list-inside space-y-0.5 text-slate-400">
-            <li><strong>Inline Renaming (New):</strong> In the <em>Subjects</em> or <em>Units</em> tab, click directly on any title/name to edit in-place and press Enter to save instantly!</li>
-            <li><strong>Attach PDF:</strong> In the <em>Units & PDFs</em> tab, click "Upload PDF" or "Replace PDF" on any row to attach verified study materials.</li>
-            <li><strong>Career & Exam Posts (New):</strong> Switch to the <em>Career & Exam Posts</em> tab to publish updates for the sidebar and <code>/posts</code> directory.</li>
-          </ul>
-        </div>
-      </div>
+      )}
 
       {/* Tabs */}
       <div className="flex border-b border-white/10 overflow-x-auto custom-scrollbar">
@@ -584,7 +888,7 @@ export default function ContentManagementPage() {
         ))}
       </div>
 
-      {/* Search Bar */}
+      {/* Search & Filter Toolbar */}
       <div className="bg-slate-900/60 rounded-xl border border-white/10 p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -592,66 +896,376 @@ export default function ContentManagementPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={`Search in ${activeTab}...`}
-            className="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono transition-colors"
+            placeholder={
+              activeTab === "units-notes"
+                ? "Search units across all semesters..."
+                : `Search in ${activeTab}...`
+            }
+            className="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-8 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 font-mono transition-colors"
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-0.5"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
-        <div className="text-xs font-mono text-slate-400">
-          Showing {filteredData.length} records
+        <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+          {/* Filter Toggle: "Show only units missing a PDF" */}
+          {activeTab === "units-notes" && (
+            <button
+              type="button"
+              onClick={() => setOnlyMissingPdf(!onlyMissingPdf)}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all border ${
+                onlyMissingPdf
+                  ? "bg-amber-500/20 text-amber-300 border-amber-400/60 font-bold shadow-[0_0_12px_rgba(251,192,45,0.2)]"
+                  : "bg-white/5 text-slate-400 border-white/10 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              <Filter className="w-3.5 h-3.5" />
+              <span>Show only units missing a PDF</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                onlyMissingPdf ? "bg-amber-400 text-slate-950 font-bold" : "bg-white/10 text-slate-300"
+              }`}>
+                {missingUnitsCount}
+              </span>
+            </button>
+          )}
+
+          <div className="text-xs font-mono text-slate-400 whitespace-nowrap">
+            {activeTab === "units-notes"
+              ? `${filteredTree.reduce((acc, sem) => acc + sem.subjects.reduce((sa, sub) => sa + sub.units.length, 0), 0)} units shown`
+              : `Showing ${filteredFlatData.length} records`}
+          </div>
         </div>
       </div>
 
-      {/* Content Table */}
-      <div className="bg-slate-900/60 rounded-xl border border-white/10 overflow-hidden shadow-xl">
-        {loading ? (
-          <div className="p-12 text-center text-slate-400 font-mono text-sm flex items-center justify-center gap-2">
-            <RefreshCw className="w-5 h-5 animate-spin text-amber-400" />
-            <span>Loading {activeTab}...</span>
-          </div>
-        ) : filteredData.length === 0 ? (
-          <div className="p-12 text-center flex flex-col items-center justify-center">
-            <FileText className="w-12 h-12 text-white/10 mb-4" />
-            <h3 className="text-xl font-display text-white mb-2 capitalize">No {activeTab} Found</h3>
-            <p className="text-slate-400 font-mono max-w-md mx-auto text-sm">
-              {activeTab === "posts" 
-                ? "No career updates or exam guides published yet. Click 'New Career / Exam Guide' to add your first post."
-                : "No matching records found in the database."}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300 font-mono">
-              <thead className="bg-black/30 border-b border-white/10 text-xs uppercase text-slate-400">
-                <tr>
-                  <th className="px-6 py-3">#</th>
-                  <th className="px-6 py-3">
-                    {activeTab === "units" ? "Unit Title (Click to rename)" : 
-                     activeTab === "subjects" ? "Subject Name (Click to rename)" :
-                     activeTab === "downloads" ? "File / Notes Name" : 
-                     activeTab === "posts" ? "Title & Slug" : "Name / Title"}
-                  </th>
-                  <th className="px-6 py-3">
-                    {activeTab === "posts" ? "Category" : "Subject / Semester"}
-                  </th>
-                  <th className="px-6 py-3">
-                    {activeTab === "posts" ? "Published Date" : "PDF Attachment"}
-                  </th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredData.map((item, idx) => {
-                  const hasDownload = item.downloads && (Array.isArray(item.downloads) ? item.downloads.length > 0 : Boolean(item.downloads.file_url));
-                  const downloadObj = Array.isArray(item.downloads) ? item.downloads[0] : item.downloads;
+      {/* ========================================================= */}
+      {/* TAB 1: UNIFIED "UNITS & NOTES" TREE NAVIGATION ACCORDION */}
+      {/* ========================================================= */}
+      {activeTab === "units-notes" && (
+        <div className="space-y-4">
+          {loading ? (
+            <div className="p-16 bg-slate-900/60 rounded-xl border border-white/10 text-center text-slate-400 font-mono text-sm flex items-center justify-center gap-2">
+              <RefreshCw className="w-5 h-5 animate-spin text-amber-400" />
+              <span>Loading Units & Notes tree...</span>
+            </div>
+          ) : filteredTree.length === 0 ? (
+            <div className="p-16 bg-slate-900/60 rounded-xl border border-white/10 text-center flex flex-col items-center justify-center">
+              <FileText className="w-12 h-12 text-white/10 mb-4" />
+              <h3 className="text-xl font-display text-white mb-2">No Matching Units Found</h3>
+              <p className="text-slate-400 font-mono max-w-md mx-auto text-sm">
+                {onlyMissingPdf
+                  ? "Great job! All units matching your search criteria already have a PDF attached."
+                  : "No units found matching your search term. Try a different query."}
+              </p>
+              {onlyMissingPdf && (
+                <button
+                  onClick={() => setOnlyMissingPdf(false)}
+                  className="mt-4 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-mono transition-colors"
+                >
+                  Clear missing PDF filter
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredTree.map((semester) => {
+                const isSemExpanded = Boolean(expandedSemesters[semester.id]);
+                const semUnitsTotal = semester.subjects.reduce((a, s) => a + s.units.length, 0);
+                const semAttachedTotal = semester.subjects.reduce(
+                  (a, s) => a + s.units.filter((u) => u.downloads && u.downloads.length > 0).length,
+                  0
+                );
 
-                  return (
+                return (
+                  <div
+                    key={semester.id}
+                    className="bg-slate-900/70 border border-white/10 rounded-2xl overflow-hidden shadow-lg transition-all"
+                  >
+                    {/* Level 1: Semester Header */}
+                    <div
+                      onClick={() => toggleSemester(semester.id)}
+                      className="p-4 sm:px-6 flex items-center justify-between cursor-pointer hover:bg-white/[0.04] transition-colors border-b border-transparent data-[expanded=true]:border-white/10"
+                      data-expanded={isSemExpanded}
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 border border-blue-500/30">
+                          {isSemExpanded ? (
+                            <ChevronDown className="w-4 h-4 text-blue-300" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-blue-400" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-display font-bold text-white text-base sm:text-lg flex items-center gap-2.5 truncate">
+                            {semester.name}
+                            <span className="text-xs font-mono font-normal px-2 py-0.5 rounded-full bg-white/10 text-slate-300 shrink-0">
+                              {semester.subjects.length} Subjects
+                            </span>
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        {/* Status pill */}
+                        <div className="hidden sm:flex items-center gap-2 text-xs font-mono">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                            semAttachedTotal === semUnitsTotal && semUnitsTotal > 0
+                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                              : semAttachedTotal > 0
+                              ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                              : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                          }`}>
+                            {semAttachedTotal} / {semUnitsTotal} PDFs
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Level 2: Subjects Accordion */}
+                    {isSemExpanded && (
+                      <div className="p-3 sm:p-5 space-y-3 bg-black/25">
+                        {semester.subjects.map((subject) => {
+                          const isSubExpanded = Boolean(expandedSubjects[subject.id]);
+                          const subAttached = subject.units.filter((u) => u.downloads && u.downloads.length > 0).length;
+
+                          return (
+                            <div
+                              key={subject.id}
+                              className="bg-slate-950/80 border border-white/10 rounded-xl overflow-hidden"
+                            >
+                              {/* Subject Header */}
+                              <div
+                                onClick={() => toggleSubject(subject.id)}
+                                className="p-3.5 sm:px-5 flex items-center justify-between cursor-pointer hover:bg-white/[0.03] transition-colors border-b border-transparent data-[expanded=true]:border-white/10"
+                                data-expanded={isSubExpanded}
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-6 h-6 rounded-md bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/30">
+                                    {isSubExpanded ? (
+                                      <ChevronDown className="w-3.5 h-3.5 text-amber-300" />
+                                    ) : (
+                                      <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <h4 className="font-sans font-semibold text-white text-sm sm:text-base truncate">
+                                      {subject.name}
+                                    </h4>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2.5 shrink-0">
+                                  <span className={`text-[11px] font-mono px-2 py-0.5 rounded-md ${
+                                    subAttached === subject.units.length && subject.units.length > 0
+                                      ? "bg-emerald-500/20 text-emerald-300"
+                                      : "bg-white/10 text-slate-300"
+                                  }`}>
+                                    {subAttached} / {subject.units.length} Units Ready
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Level 3: Units Rows */}
+                              {isSubExpanded && (
+                                <div className="divide-y divide-white/5 bg-slate-900/40">
+                                  {subject.units.map((unit) => {
+                                    const hasDownload = Boolean(
+                                      unit.downloads && unit.downloads.length > 0 && unit.downloads[0].file_url
+                                    );
+                                    const downloadObj = unit.downloads?.[0];
+
+                                    return (
+                                      <div
+                                        key={unit.id}
+                                        className="p-3 sm:px-5 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors"
+                                      >
+                                        {/* Unit Number & Title (with Inline Rename) */}
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                          <span className="w-7 h-7 rounded-lg bg-blue-600/30 text-blue-300 text-xs flex items-center justify-center font-bold font-mono shrink-0 border border-blue-500/20">
+                                            U{unit.unit_number}
+                                          </span>
+
+                                          <div className="min-w-0 flex-1">
+                                            {inlineEditId === unit.id ? (
+                                              <div className="flex items-center gap-2">
+                                                <input
+                                                  type="text"
+                                                  autoFocus
+                                                  value={inlineEditValue}
+                                                  onChange={(e) => setInlineEditValue(e.target.value)}
+                                                  onKeyDown={(e) => {
+                                                    if (e.key === "Enter") saveInlineEdit(unit.id, unit.title);
+                                                    if (e.key === "Escape") setInlineEditId(null);
+                                                  }}
+                                                  onBlur={() => saveInlineEdit(unit.id, unit.title)}
+                                                  disabled={isSavingInline}
+                                                  className="bg-slate-950 border border-amber-400 rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none w-full max-w-md shadow-inner"
+                                                />
+                                                {isSavingInline ? (
+                                                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400 shrink-0" />
+                                                ) : (
+                                                  <span className="text-[10px] text-amber-400 font-mono shrink-0">Enter ↵</span>
+                                                )}
+                                              </div>
+                                            ) : (
+                                              <div
+                                                onClick={() => startInlineEdit(unit.id, unit.title)}
+                                                className="group flex items-center gap-2 cursor-pointer hover:text-amber-300 transition-colors"
+                                                title="Click to inline rename unit"
+                                              >
+                                                <span className="text-xs sm:text-sm text-white font-medium border-b border-dashed border-white/20 group-hover:border-amber-400">
+                                                  {unit.title}
+                                                </span>
+                                                <Pencil className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* Status Badge & Actions */}
+                                        <div className="flex items-center justify-between md:justify-end gap-3 shrink-0 pl-10 md:pl-0">
+                                          {/* Status Badge */}
+                                          {hasDownload && downloadObj ? (
+                                            <div className="flex items-center gap-2">
+                                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-mono">
+                                                <Check className="w-3 h-3 text-emerald-400" />
+                                                <span>PDF attached</span>
+                                              </span>
+                                              {downloadObj.file_size_kb ? (
+                                                <span className="text-[10px] font-mono text-slate-500 hidden lg:inline">
+                                                  ({(downloadObj.file_size_kb / 1024).toFixed(1)} MB)
+                                                </span>
+                                              ) : null}
+                                            </div>
+                                          ) : (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-mono">
+                                              <AlertCircle className="w-3 h-3 text-amber-400" />
+                                              <span>No PDF yet</span>
+                                            </span>
+                                          )}
+
+                                          {/* Row Actions */}
+                                          <div className="flex items-center gap-2">
+                                            {hasDownload && downloadObj ? (
+                                              <>
+                                                {/* Open preview */}
+                                                <a
+                                                  href={downloadObj.file_url}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white rounded-lg text-xs font-mono transition-colors border border-white/10"
+                                                  title="Open & preview PDF file"
+                                                >
+                                                  <Eye className="w-3.5 h-3.5 text-blue-400" />
+                                                  <span>Open</span>
+                                                </a>
+
+                                                {/* Replace */}
+                                                <button
+                                                  type="button"
+                                                  onClick={() => openUploadForUnit(unit)}
+                                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-lg text-xs font-mono transition-colors border border-blue-500/30"
+                                                  title="Replace attached PDF"
+                                                >
+                                                  <RefreshCw className="w-3.5 h-3.5" />
+                                                  <span>Replace</span>
+                                                </button>
+
+                                                {/* Remove file */}
+                                                <button
+                                                  type="button"
+                                                  onClick={() =>
+                                                    handleDeleteDownload(downloadObj.id, unit.id, unit.title)
+                                                  }
+                                                  className="p-1 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors"
+                                                  title="Remove PDF from unit"
+                                                >
+                                                  <Trash2 className="w-4 h-4" />
+                                                </button>
+                                              </>
+                                            ) : (
+                                              /* Upload missing PDF */
+                                              <button
+                                                type="button"
+                                                onClick={() => openUploadForUnit(unit)}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:from-amber-500 hover:to-yellow-500 text-amber-300 hover:text-slate-950 font-bold border border-amber-400/40 rounded-lg text-xs font-mono transition-all shadow-sm"
+                                              >
+                                                <UploadCloud className="w-3.5 h-3.5" />
+                                                <span>Upload PDF</span>
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TAB 2, 3, 4: SUBJECTS, SEMESTERS, AND POSTS TABLES        */}
+      {/* ========================================================= */}
+      {activeTab !== "units-notes" && (
+        <div className="bg-slate-900/60 rounded-xl border border-white/10 overflow-hidden shadow-xl">
+          {loading ? (
+            <div className="p-12 text-center text-slate-400 font-mono text-sm flex items-center justify-center gap-2">
+              <RefreshCw className="w-5 h-5 animate-spin text-amber-400" />
+              <span>Loading {activeTab}...</span>
+            </div>
+          ) : filteredFlatData.length === 0 ? (
+            <div className="p-12 text-center flex flex-col items-center justify-center">
+              <FileText className="w-12 h-12 text-white/10 mb-4" />
+              <h3 className="text-xl font-display text-white mb-2 capitalize">No {activeTab} Found</h3>
+              <p className="text-slate-400 font-mono max-w-md mx-auto text-sm">
+                {activeTab === "posts" 
+                  ? "No career updates or exam guides published yet. Click 'New Career / Exam Guide' to add your first post."
+                  : "No matching records found in the database."}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-300 font-mono">
+                <thead className="bg-black/30 border-b border-white/10 text-xs uppercase text-slate-400">
+                  <tr>
+                    <th className="px-6 py-3">#</th>
+                    <th className="px-6 py-3">
+                      {activeTab === "subjects" ? "Subject Name (Click to rename)" :
+                       activeTab === "posts" ? "Title & Slug" : "Name / Title"}
+                    </th>
+                    <th className="px-6 py-3">
+                      {activeTab === "posts" ? "Category" : "Semester / Code"}
+                    </th>
+                    <th className="px-6 py-3">
+                      {activeTab === "posts" ? "Published Date" : "Slug"}
+                    </th>
+                    <th className="px-6 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredFlatData.map((item, idx) => (
                     <tr key={item.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-3 text-slate-500">{idx + 1}</td>
-                      
-                      {/* Name / Title Column with INLINE RENAME for Subjects & Units */}
+
+                      {/* Name / Title */}
                       <td className="px-6 py-3 text-white font-semibold">
-                        {(activeTab === "subjects" || activeTab === "units") ? (
+                        {activeTab === "subjects" ? (
                           inlineEditId === item.id ? (
                             <div className="flex items-center gap-2">
                               <input
@@ -660,10 +1274,10 @@ export default function ContentManagementPage() {
                                 value={inlineEditValue}
                                 onChange={(e) => setInlineEditValue(e.target.value)}
                                 onKeyDown={(e) => {
-                                  if (e.key === "Enter") saveInlineEdit(item.id, item.name || item.title);
+                                  if (e.key === "Enter") saveInlineEdit(item.id, item.name);
                                   if (e.key === "Escape") setInlineEditId(null);
                                 }}
-                                onBlur={() => saveInlineEdit(item.id, item.name || item.title)}
+                                onBlur={() => saveInlineEdit(item.id, item.name)}
                                 disabled={isSavingInline}
                                 className="bg-slate-950 border border-amber-400 rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none w-full max-w-sm shadow-inner"
                               />
@@ -675,17 +1289,12 @@ export default function ContentManagementPage() {
                             </div>
                           ) : (
                             <div 
-                              onClick={() => startInlineEdit(item.id, item.name || item.title)}
+                              onClick={() => startInlineEdit(item.id, item.name)}
                               className="group flex items-center gap-2 cursor-pointer hover:text-amber-300 transition-colors"
                               title="Click to inline rename"
                             >
-                              {activeTab === "units" && (
-                                <span className="w-6 h-6 rounded-md bg-blue-600/30 text-blue-300 text-xs flex items-center justify-center font-bold shrink-0">
-                                  U{item.unit_number}
-                                </span>
-                              )}
                               <span className="border-b border-dashed border-white/20 group-hover:border-amber-400">
-                                {item.title || item.name}
+                                {item.name}
                               </span>
                               <Pencil className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                             </div>
@@ -696,13 +1305,11 @@ export default function ContentManagementPage() {
                             <p className="text-xs text-slate-500 font-mono mt-0.5">/posts/{item.slug}</p>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <span>{item.name || item.file_name}</span>
-                          </div>
+                          <span>{item.name}</span>
                         )}
                       </td>
 
-                      {/* Subject / Semester / Category */}
+                      {/* Semester / Category */}
                       <td className="px-6 py-3 text-xs">
                         {activeTab === "posts" ? (
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${
@@ -715,34 +1322,14 @@ export default function ContentManagementPage() {
                           </span>
                         ) : (
                           <span className="text-slate-400">
-                            {item.subjects?.name || item.units?.subjects?.name || item.semesters?.name || "—"}
+                            {item.semesters?.name || (item.courses ? `${item.courses.code}` : "—")}
                           </span>
                         )}
                       </td>
 
-                      {/* PDF status or Published Date */}
+                      {/* Slug or Published Date */}
                       <td className="px-6 py-3 text-xs">
-                        {activeTab === "units" ? (
-                          hasDownload ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                              <Check className="w-3 h-3" /> Attached
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                              <AlertCircle className="w-3 h-3" /> Missing PDF
-                            </span>
-                          )
-                        ) : activeTab === "downloads" ? (
-                          <a 
-                            href={item.file_url} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 underline"
-                          >
-                            <span>Open PDF</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        ) : activeTab === "posts" ? (
+                        {activeTab === "posts" ? (
                           <span className="text-slate-400 flex items-center gap-1.5">
                             <Calendar className="w-3.5 h-3.5 text-slate-500" />
                             {item.published_at ? new Date(item.published_at).toLocaleDateString() : "Just now"}
@@ -752,28 +1339,9 @@ export default function ContentManagementPage() {
                         )}
                       </td>
 
-                      {/* Action buttons */}
+                      {/* Actions */}
                       <td className="px-6 py-3 text-right">
-                        {activeTab === "units" ? (
-                          <button
-                            onClick={() => openUploadForUnit(item)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/30 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/40 rounded-lg text-xs transition-all"
-                          >
-                            <UploadCloud className="w-3.5 h-3.5" />
-                            <span>{hasDownload ? "Replace PDF" : "Upload PDF"}</span>
-                          </button>
-                        ) : activeTab === "downloads" ? (
-                          <button
-                            onClick={() => {
-                              setSelectedUnitId(item.units?.id || "");
-                              setCustomFileName(item.file_name);
-                              setIsModalOpen(true);
-                            }}
-                            className="text-xs text-amber-400 hover:text-amber-300 transition-colors"
-                          >
-                            Replace File
-                          </button>
-                        ) : activeTab === "posts" ? (
+                        {activeTab === "posts" ? (
                           <div className="flex items-center justify-end gap-2">
                             <a
                               href={`/posts/${item.slug}`}
@@ -804,13 +1372,13 @@ export default function ContentManagementPage() {
                         )}
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* MODAL: POST CREATE & EDIT (CAREER & EXAM GUIDES)          */}
@@ -855,7 +1423,6 @@ export default function ContentManagementPage() {
                     setPostForm((prev) => ({
                       ...prev,
                       title: newTitle,
-                      // Auto-generate slug if not editing an existing custom slug
                       slug: prev.slug && editingPostId ? prev.slug : newTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
                     }));
                   }}

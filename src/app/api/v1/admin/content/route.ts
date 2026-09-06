@@ -168,6 +168,21 @@ export async function POST(req: NextRequest) {
       return success({ deleted: true });
     }
 
+    if (action === "delete-download" || action === "remove-pdf") {
+      const { downloadId, unitId } = body;
+      if (!downloadId && !unitId) return apiError(400, "downloadId or unitId is required");
+
+      let query = supabase.from("downloads").delete();
+      if (downloadId) {
+        query = query.eq("id", downloadId);
+      } else if (unitId) {
+        query = query.eq("unit_id", unitId);
+      }
+      const { error } = await query;
+      if (error) return apiError(500, error.message);
+      return success({ deleted: true });
+    }
+
     return apiError(400, "Invalid action");
   } catch (err: any) {
     console.error("Admin content API error:", err);
