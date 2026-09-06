@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: "Read the latest pharmacy career guides, GPAT exam strategies, and pharmaceutical industry insights.",
 };
 
+export const revalidate = 3600;
+
 export default async function PostsPage() {
   const posts = await getRecentPosts(20);
 

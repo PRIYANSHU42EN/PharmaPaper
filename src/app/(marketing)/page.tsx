@@ -2,7 +2,7 @@ import { getSemesters } from "@/lib/supabase";
 import Hero from "@/components/Hero";
 import SemesterGrid from "@/components/SemesterGrid";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function Home() {
   const [bpharmSemesters, dpharmSemesters] = await Promise.all([

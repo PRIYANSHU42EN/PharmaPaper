@@ -1,5 +1,3 @@
-"use client";
-
 import { Send, MessageCircle } from "lucide-react";
 
 function YoutubeIcon({ className }: { className?: string }) {
@@ -22,7 +20,7 @@ export default function FloatingSocialIcons() {
     {
       name: "WhatsApp Community",
       icon: MessageCircle,
-      href: "https://whatsapp.com/channel/pharmapaper",
+      href: "https://whatsapp.com/channel/0029Vb8NlDIJpe8gxELnuq3R",
       bgColor: "bg-[#25D366]",
       hoverColor: "hover:bg-[#20ba59]",
     },

@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -23,11 +22,8 @@ export default function GlobalError({ error, reset }: ErrorProps) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-[#171717] text-[#fafafa] flex items-center justify-center px-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="text-center max-w-md w-full"
+        <div
+          className="text-center max-w-md w-full transition-all duration-300"
           style={{
             background: "rgba(23,23,23,0.8)",
             backdropFilter: "blur(12px)",
@@ -133,7 +129,7 @@ export default function GlobalError({ error, reset }: ErrorProps) {
               Return Home
             </Link>
           </div>
-        </motion.div>
+        </div>
       </body>
     </html>
   );

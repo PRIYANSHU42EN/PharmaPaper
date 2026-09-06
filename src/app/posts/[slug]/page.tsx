@@ -2,12 +2,30 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Metadata } from "next";
 import { ChevronRight, Calendar, ArrowLeft } from "lucide-react";
-import { getPostBySlug } from "@/lib/supabase";
+import { getPostBySlug, supabase } from "@/lib/supabase";
 
 interface PageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    const { data: posts } = await supabase
+      .from("posts")
+      .select("slug")
+      .limit(100);
+
+    return (posts || []).map((p: any) => ({
+      slug: p.slug,
+    }));
+  } catch (err) {
+    console.error("Error generating static params for posts:", err);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

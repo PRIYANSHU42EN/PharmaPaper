@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { BookOpen, ChevronRight, GraduationCap, ShieldCheck } from "lucide-react";
 import { 
+  getSemesters,
   getSemesterBySlug, 
   getSubjects, 
   getApprovedComments, 
@@ -17,6 +18,21 @@ interface PageProps {
     course: string;
     semesterSlug: string;
   }>;
+}
+
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    const semesters = await getSemesters();
+    return (semesters || []).map((sem) => ({
+      course: (sem.course || "bpharm").toLowerCase(),
+      semesterSlug: sem.slug,
+    }));
+  } catch (err) {
+    console.error("Error generating static params for semesters:", err);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChevronRight, ShieldCheck, Mail, Sparkles, ExternalLink, Send, MessageCircle } from "lucide-react";
 import type { LegalPageData } from "@/lib/legalContent";
@@ -16,26 +13,6 @@ function YoutubeIcon({ className }: { className?: string }) {
 interface LegalPageLayoutProps {
   data: LegalPageData;
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.08,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-  },
-};
 
 /**
  * Inline text parser that handles **bold** tokens, emails, and live site URLs
@@ -104,14 +81,9 @@ export default function LegalPageLayout({ data }: LegalPageLayoutProps) {
           <span className="text-blue-600 font-bold">{data.title}</span>
         </nav>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-8"
-        >
+        <div className="space-y-8">
           {/* Header Card */}
-          <motion.div variants={itemVariants} className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-4 transition-all">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
               <Sparkles className="w-3.5 h-3.5 text-amber-600" />
               <span>Official Information & Guidelines</span>
@@ -135,14 +107,13 @@ export default function LegalPageLayout({ data }: LegalPageLayoutProps) {
                 <FormattedInline text={data.intro} />
               </div>
             )}
-          </motion.div>
+          </div>
 
           {/* Policy / Info Sections */}
           <div className="space-y-6">
             {data.sections.map((section, idx) => (
-              <motion.section
+              <section
                 key={idx}
-                variants={itemVariants}
                 className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4 hover:border-slate-300 transition-colors"
               >
                 <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
@@ -181,16 +152,13 @@ export default function LegalPageLayout({ data }: LegalPageLayoutProps) {
                     );
                   })}
                 </div>
-              </motion.section>
+              </section>
             ))}
           </div>
 
           {/* Contact Block & Quick Channels */}
           {data.contactBlock && (
-            <motion.div
-              variants={itemVariants}
-              className="bg-gradient-to-br from-blue-50/80 to-amber-50/50 rounded-3xl p-6 sm:p-8 border border-blue-200/60 space-y-6 shadow-sm"
-            >
+            <div className="bg-gradient-to-br from-blue-50/80 to-amber-50/50 rounded-3xl p-6 sm:p-8 border border-blue-200/60 space-y-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-sm">
@@ -287,11 +255,11 @@ export default function LegalPageLayout({ data }: LegalPageLayoutProps) {
                   </a>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {/* Quick Legal Cross-Links */}
-          <motion.div variants={itemVariants} className="pt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs font-semibold text-slate-500">
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs font-semibold text-slate-500">
             <Link href="/about" className="hover:text-blue-600 transition-colors">
               About Us
             </Link>
@@ -311,8 +279,8 @@ export default function LegalPageLayout({ data }: LegalPageLayoutProps) {
             <Link href="/disclaimer" className="hover:text-blue-600 transition-colors">
               Disclaimer
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );

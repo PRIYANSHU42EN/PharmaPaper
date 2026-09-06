@@ -159,23 +159,42 @@ export default function ContentManagementPage() {
     { id: "posts", name: "Career & Exam Posts", icon: FileText },
   ];
 
-  // Initial load of reference metadata for the upload picker
+  // Initial load of reference metadata (semesters & subjects only)
   useEffect(() => {
     async function fetchReferences() {
       try {
         const { data: sems } = await supabase.from("semesters").select("id, name, slug, number").order("number");
         const { data: subs } = await supabase.from("subjects").select("id, name, slug, semester_id").order("name");
-        const { data: uns } = await supabase.from("units").select("id, title, unit_number, slug, subject_id").order("unit_number");
 
         if (sems) setAllSemesters(sems);
         if (subs) setAllSubjects(subs);
-        if (uns) setAllUnits(uns);
       } catch (err) {
         console.error("Failed to load reference options:", err);
       }
     }
     fetchReferences();
   }, []);
+
+  // Lazily load units for the selected subject only
+  useEffect(() => {
+    if (!selectedSubjectId) {
+      setAllUnits([]);
+      return;
+    }
+    async function fetchUnitsForSubject() {
+      try {
+        const { data: uns } = await supabase
+          .from("units")
+          .select("id, title, unit_number, slug, subject_id")
+          .eq("subject_id", selectedSubjectId)
+          .order("unit_number");
+        if (uns) setAllUnits(uns);
+      } catch (err) {
+        console.error("Failed to load units for subject:", err);
+      }
+    }
+    fetchUnitsForSubject();
+  }, [selectedSubjectId]);
 
   async function loadData() {
     setLoading(true);

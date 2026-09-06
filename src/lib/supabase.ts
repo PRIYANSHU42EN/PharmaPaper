@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { cache } from "react";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
@@ -75,19 +76,19 @@ export interface Post {
   published_at: string;
 }
 
-// ── Queries ───────────────────────────────────────────────────────────
+// ── Optimized & Memoized Queries ──────────────────────────────────────────
 
 /**
  * Fetch all semesters for a given course ('bpharm' or 'dpharm') or all semesters.
+ * Wrapped in React cache() to deduplicate within request life-cycle.
  */
-export async function getSemesters(courseCode?: string): Promise<Semester[]> {
+export const getSemesters = cache(async (courseCode?: string): Promise<Semester[]> => {
   try {
-    let query = supabase
+    const { data, error } = await supabase
       .from("semesters")
       .select("id, number, name, slug, content_html, course_id, courses(code, name)")
       .order("number", { ascending: true });
 
-    const { data, error } = await query;
     if (error) {
       console.error("Error fetching semesters:", error.message);
       return [];
@@ -104,7 +105,7 @@ export async function getSemesters(courseCode?: string): Promise<Semester[]> {
     }));
 
     if (courseCode) {
-      return items.filter(i => i.course.toLowerCase() === courseCode.toLowerCase());
+      return items.filter((i) => i.course.toLowerCase() === courseCode.toLowerCase());
     }
 
     return items;
@@ -112,24 +113,48 @@ export async function getSemesters(courseCode?: string): Promise<Semester[]> {
     console.error("Failed to fetch semesters:", err);
     return [];
   }
-}
+});
 
 /**
- * Fetch a semester by course code and semester slug.
+ * Fetch a semester by course code and semester slug directly with WHERE slug = ...
+ * Wrapped in React cache() to deduplicate metadata + page generation.
  */
-export async function getSemesterBySlug(courseCode: string, semesterSlug: string): Promise<Semester | null> {
-  const semesters = await getSemesters(courseCode);
-  return semesters.find(s => s.slug === semesterSlug) || null;
-}
+export const getSemesterBySlug = cache(async (courseCode: string, semesterSlug: string): Promise<Semester | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("semesters")
+      .select("id, number, name, slug, content_html, course_id, courses(code, name)")
+      .eq("slug", semesterSlug);
+
+    if (error || !data || data.length === 0) return null;
+
+    const matched = data.find(
+      (s: any) => (s.courses?.code || "bpharm").toLowerCase() === courseCode.toLowerCase()
+    ) || data[0];
+
+    return {
+      id: matched.id,
+      number: matched.number,
+      title: matched.name || `Semester ${matched.number}`,
+      name: matched.name || `Semester ${matched.number}`,
+      slug: matched.slug,
+      course: (matched.courses as any)?.code || courseCode,
+      content_html: matched.content_html,
+    };
+  } catch (err) {
+    console.error("Failed to fetch semester by slug:", err);
+    return null;
+  }
+});
 
 /**
- * Fetch subjects for a semester, ordered by order_index.
+ * Fetch subjects for a semester, selecting only necessary columns and ordered by order_index.
  */
-export async function getSubjects(semesterId: string): Promise<Subject[]> {
+export const getSubjects = cache(async (semesterId: string): Promise<Subject[]> => {
   try {
     const { data, error } = await supabase
       .from("subjects")
-      .select("*")
+      .select("id, semester_id, name, slug, description, content_html, order_index")
       .eq("semester_id", semesterId)
       .order("order_index", { ascending: true })
       .order("name", { ascending: true });
@@ -143,24 +168,36 @@ export async function getSubjects(semesterId: string): Promise<Subject[]> {
     console.error("Failed to fetch subjects:", err);
     return [];
   }
-}
+});
 
 /**
- * Fetch a subject by its semester ID and subject slug.
+ * Fetch a subject by its semester ID and subject slug directly with indexed WHERE clause.
  */
-export async function getSubjectBySlug(semesterId: string, subjectSlug: string): Promise<Subject | null> {
-  const subjects = await getSubjects(semesterId);
-  return subjects.find(s => s.slug === subjectSlug) || null;
-}
+export const getSubjectBySlug = cache(async (semesterId: string, subjectSlug: string): Promise<Subject | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("subjects")
+      .select("id, semester_id, name, slug, description, content_html, order_index")
+      .eq("semester_id", semesterId)
+      .eq("slug", subjectSlug)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data;
+  } catch (err) {
+    console.error("Failed to fetch subject by slug:", err);
+    return null;
+  }
+});
 
 /**
- * Fetch units for a subject, ordered by order_index.
+ * Fetch units for a subject, selecting only needed columns ordered by order_index.
  */
-export async function getUnits(subjectId: string): Promise<Unit[]> {
+export const getUnits = cache(async (subjectId: string): Promise<Unit[]> => {
   try {
     const { data, error } = await supabase
       .from("units")
-      .select("*")
+      .select("id, subject_id, unit_number, title, slug, content_html, order_index")
       .eq("subject_id", subjectId)
       .order("order_index", { ascending: true });
 
@@ -173,24 +210,36 @@ export async function getUnits(subjectId: string): Promise<Unit[]> {
     console.error("Failed to fetch units:", err);
     return [];
   }
-}
+});
 
 /**
- * Fetch a unit by subject ID and unit slug.
+ * Fetch a unit by subject ID and unit slug directly with indexed WHERE clause.
  */
-export async function getUnitBySlug(subjectId: string, unitSlug: string): Promise<Unit | null> {
-  const units = await getUnits(subjectId);
-  return units.find(u => u.slug === unitSlug) || null;
-}
+export const getUnitBySlug = cache(async (subjectId: string, unitSlug: string): Promise<Unit | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("units")
+      .select("id, subject_id, unit_number, title, slug, content_html, order_index")
+      .eq("subject_id", subjectId)
+      .eq("slug", unitSlug)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return data;
+  } catch (err) {
+    console.error("Failed to fetch unit by slug:", err);
+    return null;
+  }
+});
 
 /**
  * Fetch download information for a unit.
  */
-export async function getDownload(unitId: string): Promise<Download | null> {
+export const getDownload = cache(async (unitId: string): Promise<Download | null> => {
   try {
     const { data, error } = await supabase
       .from("downloads")
-      .select("*")
+      .select("id, unit_id, file_name, file_url, file_size_kb, uploaded_at")
       .eq("unit_id", unitId)
       .maybeSingle();
 
@@ -203,7 +252,7 @@ export async function getDownload(unitId: string): Promise<Download | null> {
     console.error("Failed to fetch download:", err);
     return null;
   }
-}
+});
 
 /**
  * Log a download event (public insert allowed by RLS).
@@ -237,11 +286,14 @@ export async function logDownload(unitId: string, userAgent?: string): Promise<b
 /**
  * Fetch approved comments for a semester, subject, or unit.
  */
-export async function getApprovedComments(parentType: "semester" | "subject" | "unit", parentId: string): Promise<Comment[]> {
+export const getApprovedComments = cache(async (
+  parentType: "semester" | "subject" | "unit",
+  parentId: string
+): Promise<Comment[]> => {
   try {
     const { data, error } = await supabase
       .from("comments")
-      .select("*")
+      .select("id, parent_type, parent_id, name, email, website, comment_text, approved, created_at")
       .eq("parent_type", parentType)
       .eq("parent_id", parentId)
       .eq("approved", true)
@@ -256,7 +308,7 @@ export async function getApprovedComments(parentType: "semester" | "subject" | "
     console.error("Failed to fetch comments:", err);
     return [];
   }
-}
+});
 
 /**
  * Submit a comment for moderation (public insert allowed by RLS).
@@ -289,11 +341,11 @@ export async function submitComment(comment: {
 /**
  * Fetch recent posts for the sidebar.
  */
-export async function getRecentPosts(limit = 5): Promise<Post[]> {
+export const getRecentPosts = cache(async (limit = 5): Promise<Post[]> => {
   try {
     const { data, error } = await supabase
       .from("posts")
-      .select("*")
+      .select("id, title, slug, category, excerpt, published_at")
       .order("published_at", { ascending: false })
       .limit(limit);
 
@@ -306,16 +358,16 @@ export async function getRecentPosts(limit = 5): Promise<Post[]> {
     console.error("Failed to fetch recent posts:", err);
     return [];
   }
-}
+});
 
 /**
  * Fetch a single post by slug.
  */
-export async function getPostBySlug(slug: string): Promise<Post | null> {
+export const getPostBySlug = cache(async (slug: string): Promise<Post | null> => {
   try {
     const { data, error } = await supabase
       .from("posts")
-      .select("*")
+      .select("id, title, slug, category, excerpt, content_html, published_at")
       .eq("slug", slug)
       .maybeSingle();
 
@@ -324,7 +376,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
   } catch (err) {
     return null;
   }
-}
+});
 
 /**
  * Fetch platform settings fallback.

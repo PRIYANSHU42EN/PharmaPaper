@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { ChevronRight, Layers, FileText, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { 
+  supabase,
   getSemesterBySlug, 
   getSubjectBySlug, 
   getUnitBySlug, 
@@ -21,6 +22,27 @@ interface PageProps {
     subjectSlug: string;
     unitSlug: string;
   }>;
+}
+
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    const { data: units } = await supabase
+      .from("units")
+      .select("id, slug, subjects(slug, semesters(slug, courses(code)))")
+      .limit(300);
+
+    return (units || []).map((u: any) => ({
+      course: (u.subjects?.semesters?.courses?.code || "bpharm").toLowerCase(),
+      semesterSlug: u.subjects?.semesters?.slug || "1st-semester",
+      subjectSlug: u.subjects?.slug || "subject",
+      unitSlug: u.slug,
+    }));
+  } catch (err) {
+    console.error("Error generating static params for units:", err);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

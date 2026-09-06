@@ -83,6 +83,7 @@ export async function POST(req: Request) {
         .from("notes-pdfs")
         .upload(storagePath, buffer, {
           contentType: "application/pdf",
+          cacheControl: "31536000",
           upsert: true,
         });
 
