@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { 
   LineChart as LucideLineChart, 
   Download, 
@@ -11,7 +11,10 @@ import {
   Clock,
   ArrowUpRight,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  Calendar,
+  TrendingUp,
+  TrendingDown
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -41,7 +44,10 @@ export default function AnalyticsPage() {
   const [isLiveConnected, setIsLiveConnected] = useState(false);
   const [recentActivities, setRecentActivities] = useState<LiveActivity[]>([]);
   const [totalDownloads, setTotalDownloads] = useState<number>(0);
+  const [monthlyDownloads, setMonthlyDownloads] = useState<number>(0);
+  const [lastMonthDownloads, setLastMonthDownloads] = useState<number>(0);
   const recentTimerRef = useRef<Record<string, NodeJS.Timeout>>({});
+  const currentMonthIndexRef = useRef<number>(new Date().getMonth());
 
   // 1. Initial Data Fetching
   async function loadInitialData() {
@@ -75,10 +81,29 @@ export default function AnalyticsPage() {
 
       const counts: Record<string, { count: number; lastAt: string }> = {};
       let total = 0;
+      let thisMonthCount = 0;
+      let lastMonthCount = 0;
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const startOfThisMonth = new Date(currentYear, currentMonth, 1, 0, 0, 0, 0);
+      const startOfNextMonth = new Date(currentYear, currentMonth + 1, 1, 0, 0, 0, 0);
+      const startOfLastMonth = new Date(currentYear, currentMonth - 1, 1, 0, 0, 0, 0);
 
       (logsData || []).forEach((row: any) => {
         if (!row.unit_id) return;
         total++;
+
+        if (row.downloaded_at) {
+          const dlDate = new Date(row.downloaded_at);
+          if (dlDate >= startOfThisMonth && dlDate < startOfNextMonth) {
+            thisMonthCount++;
+          } else if (dlDate >= startOfLastMonth && dlDate < startOfThisMonth) {
+            lastMonthCount++;
+          }
+        }
+
         if (!counts[row.unit_id]) {
           counts[row.unit_id] = { count: 1, lastAt: row.downloaded_at };
         } else {
@@ -87,6 +112,9 @@ export default function AnalyticsPage() {
       });
 
       setTotalDownloads(total);
+      setMonthlyDownloads(thisMonthCount);
+      setLastMonthDownloads(lastMonthCount);
+      currentMonthIndexRef.current = currentMonth;
 
       // Format stats
       const statsList: DownloadStat[] = Object.entries(counts).map(([uId, c]) => {
@@ -132,11 +160,29 @@ export default function AnalyticsPage() {
 
   // 2. Realtime Subscription (postgres_changes + broadcast)
   useEffect(() => {
-    function handleIncomingDownload(unitId: string) {
+    function handleIncomingDownload(unitId: string, timestamp?: string) {
+      const currentNow = new Date();
+
+      // If month rolled over while tab was open, reload full analytics data
+      if (currentNow.getMonth() !== currentMonthIndexRef.current) {
+        currentMonthIndexRef.current = currentNow.getMonth();
+        loadInitialData();
+        return;
+      }
+
       // 1. Increment total downloads counter
       setTotalDownloads((prev) => prev + 1);
 
-      // 2. Update specific unit count in local state without refetching
+      // 2. Increment monthly counter if timestamp falls in current calendar month
+      const dlDate = timestamp ? new Date(timestamp) : currentNow;
+      if (
+        dlDate.getFullYear() === currentNow.getFullYear() &&
+        dlDate.getMonth() === currentNow.getMonth()
+      ) {
+        setMonthlyDownloads((prev) => prev + 1);
+      }
+
+      // 3. Update specific unit count in local state without refetching
       setDownloadStats((prevStats) => {
         const existingIdx = prevStats.findIndex((s) => s.unitId === unitId);
         let updated: DownloadStat[];
@@ -177,7 +223,7 @@ export default function AnalyticsPage() {
         return updated;
       });
 
-      // 3. Add to live activity feed
+      // 4. Add to live activity feed
       const uInfo = unitsMap[unitId];
       const newActivity: LiveActivity = {
         id: `live-${Date.now()}-${Math.random()}`,
@@ -189,7 +235,7 @@ export default function AnalyticsPage() {
 
       setRecentActivities((prev) => [newActivity, ...prev.slice(0, 7)]);
 
-      // 4. Remove highlight animation after 3 seconds
+      // 5. Remove highlight animation after 3 seconds
       if (recentTimerRef.current[unitId]) clearTimeout(recentTimerRef.current[unitId]);
       recentTimerRef.current[unitId] = setTimeout(() => {
         setDownloadStats((prev) =>
@@ -206,15 +252,17 @@ export default function AnalyticsPage() {
         { event: "INSERT", schema: "public", table: "download_logs" },
         (payload: any) => {
           const unitId = payload.new?.unit_id;
+          const downloadedAt = payload.new?.downloaded_at;
           if (unitId) {
-            handleIncomingDownload(unitId);
+            handleIncomingDownload(unitId, downloadedAt);
           }
         }
       )
       .on("broadcast", { event: "download" }, (event: any) => {
         const unitId = event.payload?.unit_id;
+        const downloadedAt = event.payload?.timestamp || event.payload?.downloaded_at;
         if (unitId) {
-          handleIncomingDownload(unitId);
+          handleIncomingDownload(unitId, downloadedAt);
         }
       })
       .subscribe((status) => {
@@ -227,6 +275,16 @@ export default function AnalyticsPage() {
       Object.values(recentTimerRef.current).forEach(clearTimeout);
     };
   }, [unitsMap]);
+
+  // Compute month name and percentage change vs last month
+  const currentMonthName = useMemo(() => {
+    return new Date().toLocaleString("default", { month: "long" });
+  }, []);
+
+  const monthlyChangePercent = useMemo(() => {
+    if (lastMonthDownloads === 0) return null;
+    return Math.round(((monthlyDownloads - lastMonthDownloads) / lastMonthDownloads) * 100);
+  }, [monthlyDownloads, lastMonthDownloads]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl">
@@ -267,7 +325,8 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Downloads */}
         <div className="bg-slate-900/70 rounded-2xl p-5 border border-white/10 relative overflow-hidden">
           <div className="text-slate-400 font-mono text-xs uppercase tracking-wider mb-1 flex items-center justify-between">
             <span>Total PDF Downloads</span>
@@ -282,6 +341,37 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* Total Downloads This Calendar Month */}
+        <div className="bg-slate-900/70 rounded-2xl p-5 border border-white/10 relative overflow-hidden">
+          <div className="text-slate-400 font-mono text-xs uppercase tracking-wider mb-1 flex items-center justify-between">
+            <span>{currentMonthName} Downloads</span>
+            <Calendar className="w-4 h-4 text-purple-400" />
+          </div>
+          <div className="text-3xl font-display font-extrabold text-white">
+            {monthlyDownloads.toLocaleString()}
+          </div>
+          {monthlyChangePercent !== null ? (
+            <div className={`text-[11px] font-mono mt-2 flex items-center gap-1 ${
+              monthlyChangePercent >= 0 ? "text-emerald-400" : "text-rose-400"
+            }`}>
+              {monthlyChangePercent >= 0 ? (
+                <TrendingUp className="w-3 h-3" />
+              ) : (
+                <TrendingDown className="w-3 h-3" />
+              )}
+              <span>
+                {monthlyChangePercent >= 0 ? `↑ +${monthlyChangePercent}%` : `↓ ${monthlyChangePercent}%`} vs last month ({lastMonthDownloads.toLocaleString()})
+              </span>
+            </div>
+          ) : (
+            <div className="text-[11px] font-mono text-slate-400 mt-2 flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-purple-400" />
+              <span>1st {currentMonthName} to date</span>
+            </div>
+          )}
+        </div>
+
+        {/* Units with Downloads */}
         <div className="bg-slate-900/70 rounded-2xl p-5 border border-white/10 relative overflow-hidden">
           <div className="text-slate-400 font-mono text-xs uppercase tracking-wider mb-1 flex items-center justify-between">
             <span>Units with Downloads</span>
@@ -295,6 +385,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* Realtime Engine */}
         <div className="bg-slate-900/70 rounded-2xl p-5 border border-white/10 relative overflow-hidden">
           <div className="text-slate-400 font-mono text-xs uppercase tracking-wider mb-1 flex items-center justify-between">
             <span>Realtime Engine</span>
