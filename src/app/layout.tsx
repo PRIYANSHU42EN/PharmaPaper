@@ -30,16 +30,19 @@ const siteUrl = (() => {
   return "https://pharmapaper.dpdns.org";
 })();
 
+const productionDomain = "https://pharmapaper.dpdns.org";
+const ogImageUrl = `${productionDomain}/og-image.png`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
     template: "%s | PharmaPaper",
   },
-  description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
+  description: "Free B.Pharm and D.Pharm study notes, syllabus-aligned lecture notes, unit summaries, and study resources.",
   keywords: ["PharmaPaper", "pharmacy notes", "B.Pharm notes", "D.Pharm notes", "pharmacy lecture notes", "PCI syllabus"],
   alternates: {
-    canonical: "https://pharmapaper.dpdns.org",
+    canonical: productionDomain,
   },
   icons: {
     icon: [
@@ -53,17 +56,27 @@ export const metadata: Metadata = {
   },
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
-    description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
-    url: "https://pharmapaper.dpdns.org",
+    title: "PharmaPaper",
+    description: "Free B.Pharm and D.Pharm study notes, syllabus-aligned lecture notes, unit summaries, and study resources.",
+    url: productionDomain,
     siteName: "PharmaPaper",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: ogImageUrl,
+        width: 1200,
+        height: 630,
+        alt: "PharmaPaper — Free B.Pharm and D.Pharm Study Notes",
+        type: "image/png",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
-    description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
+    title: "PharmaPaper",
+    description: "Free B.Pharm and D.Pharm study notes, syllabus-aligned lecture notes, unit summaries, and study resources.",
+    images: [ogImageUrl],
   },
 };
 
