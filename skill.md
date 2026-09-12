@@ -22,12 +22,16 @@ Read `design.md` and `tech.md` in this same folder first — they hold the visua
 - Any new database column or table: update `supabase/schema.sql` in the same change, including its RLS policy — schema and code must never drift apart.
 - Semester, Subject, and Unit pages must render the shared `Sidebar` (Search + Recent Posts), their own `content_html` article, and `CommentSection` — don't strip these for a simpler layout without checking `design.md` first.
 
-## Main Animation & Interactive Skills (Primary Standards)
-1. **GSAP (GreenSock Animation Platform) — Core Animation Standard**:
-   - For all UI animations, micro-interactions, timeline sequencing, and scroll-linked elements, **GSAP (`gsap`, `gsap-react`, `gsap-scrolltrigger`, `gsap-core`) is the mandatory main animation skill**.
+## Main Design, Animation & Interactive Skills (Primary Standards)
+1. **Claude Design Skillstack (`modern-web-design`) — Core Visual & 3D Standard**:
+   - For all UI design, aesthetics, color palette curation, and visual layout, **`modern-web-design` is the mandatory main design skill**.
+   - For WebGL / 3D canvas experiences: prioritize **`threejs-webgl`** and **`react-three-fiber`**.
+   - For declarative component transitions: prioritize **`motion-framer`** (Framer Motion).
+2. **GSAP (GreenSock Animation Platform) — Core Animation Standard**:
+   - For all complex UI animations, micro-interactions, timeline sequencing, and scroll-linked elements, **GSAP (`gsap`, `gsap-react`, `gsap-scrolltrigger`, `gsap-core`) is the mandatory main animation skill**.
    - In React/Next.js components, use `@gsap/react` / `useGSAP` hook or clean `gsap.context()` for automatic cleanup and SSR safety.
    - Prefer GSAP transforms (`x`, `y`, `scale`, `rotation`, `autoAlpha`) for 60fps hardware-accelerated animations.
-2. **Scroll-World — Core Immersive Landing & Camera Flight Standard**:
+3. **Scroll-World — Core Immersive Landing & Camera Flight Standard**:
    - For immersive 3D fly-through sections, seamless scene-to-scene camera dives, and diorama exploration, **`scroll-world` is the mandatory main skill**.
    - Leverages seamless frame-locked video chains and the portable vanilla JS scrub engine (`scrub-engine.js`) driven smoothly by user scroll.
 
