@@ -1,11 +1,7 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Inter } from "next/font/google";
-import { ClerkProvider } from "@clerk/nextjs";
-import { Suspense } from "react";
-import AnalyticsTracker from "@/components/AnalyticsTracker";
 import { validateEnv } from "@/lib/env";
-import TrialBanner from "@/components/TrialBanner";
-import PWALoader from "@/components/PWALoader";
+import PublicShell from "@/components/PublicShell";
 import "./globals.css";
 
 validateEnv();
@@ -15,19 +11,60 @@ const bebasNeue = Bebas_Neue({
   subsets: ["latin"],
   variable: "--font-bebas-neue",
   display: "swap",
+  adjustFontFallback: true,
 });
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  adjustFontFallback: true,
+  fallback: ["system-ui", "-apple-system", "sans-serif"],
 });
 
+const siteUrl = (() => {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (envUrl && !envUrl.includes("localhost") && !envUrl.includes("127.0.0.1")) {
+    return envUrl.replace(/\/$/, "");
+  }
+  return "https://pharmapaper.dpdns.org";
+})();
+
 export const metadata: Metadata = {
-  title: "PharmPaper | Your Complete Pharmacy Study Vault",
-  description: "Access all B Pharm and D Pharm semester notes, previous year question papers, and study materials in one clean, distraction-free platform.",
-  keywords: ["PharmPaper", "pharmacy notes", "B Pharm notes", "D Pharm notes", "pharmacy papers", "study vault"],
-  manifest: "/manifest.json",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
+    template: "%s | PharmaPaper",
+  },
+  description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
+  keywords: ["PharmaPaper", "pharmacy notes", "B.Pharm notes", "D.Pharm notes", "pharmacy lecture notes", "PCI syllabus"],
+  alternates: {
+    canonical: "https://pharmapaper.dpdns.org",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  manifest: "/site.webmanifest",
+  openGraph: {
+    title: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
+    description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
+    url: "https://pharmapaper.dpdns.org",
+    siteName: "PharmaPaper",
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PharmaPaper — Your Gateway to Excellence in Pharmacy Education",
+    description: "Download verified, syllabus-oriented B.Pharm and D.Pharm lecture notes, unit summaries, and study resources.",
+  },
 };
 
 export default function RootLayout({
@@ -38,17 +75,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body
-        className={`${bebasNeue.variable} ${inter.variable} min-h-full bg-[#171717] text-[#fafafa] font-sans antialiased overflow-x-hidden`}
+        className={`${bebasNeue.variable} ${inter.variable} min-h-full bg-[#F9FAFB] text-slate-900 font-sans antialiased`}
         suppressHydrationWarning
       >
-        <ClerkProvider afterSignOutUrl="/">
-          <PWALoader />
-          <Suspense fallback={null}>
-            <AnalyticsTracker />
-          </Suspense>
-          <TrialBanner />
-          {children}
-        </ClerkProvider>
+        <PublicShell>{children}</PublicShell>
       </body>
     </html>
   );

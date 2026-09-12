@@ -29,12 +29,12 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self';",
-      "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' 'unsafe-inline' https://checkout.razorpay.com https://www.gstatic.com https://cdnjs.cloudflare.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://www.youtube.com https://s.ytimg.com;",
+      "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' 'unsafe-inline' https://checkout.razorpay.com https://www.gstatic.com https://cdnjs.cloudflare.com https://challenges.cloudflare.com https://www.youtube.com https://s.ytimg.com;",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
       "font-src 'self' data: https://fonts.gstatic.com;",
-      "img-src 'self' data: blob: https://checkout.razorpay.com https://img.clerk.com https://*.clerk.accounts.dev https://img.youtube.com;",
-      "connect-src 'self' ws: wss: blob: https://api.razorpay.com https://*.supabase.co https://*.upstash.io https://www.gstatic.com https://cdnjs.cloudflare.com https://*.clerk.accounts.dev https://clerk-telemetry.com;", // Allowed ws/wss for Next.js Dev Server HMR, blob: for ThreeJS, Supabase, and CDNs
-      "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.supabase.co https://*.jsdelivr.net https://example.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com;", // Allowed iframes for embedding PDF viewers from Supabase and trusted CDNs
+      "img-src 'self' data: blob: https://checkout.razorpay.com https://img.youtube.com;",
+      "connect-src 'self' ws: wss: blob: https://api.razorpay.com https://*.supabase.co https://*.upstash.io https://www.gstatic.com https://cdnjs.cloudflare.com;",
+      "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://*.supabase.co https://*.jsdelivr.net https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com;",
       "worker-src 'self' blob: https://cdnjs.cloudflare.com;",
       "media-src 'self' blob:;",
       "object-src 'none';",
@@ -46,9 +46,26 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["three", "gsap", "@react-three/fiber", "@react-three/drei"],
+  compress: true,
+  poweredByHeader: false,
+
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 86400,
+  },
+
   turbopack: {
     root: __dirname,
+  },
+
+  async redirects() {
+    return [
+      {
+        source: "/privacy-policy",
+        destination: "/privacy",
+        permanent: true,
+      },
+    ];
   },
 
   async headers() {
@@ -56,33 +73,6 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
-      },
-      {
-        source: "/book.glb",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/handwritten_notes_preview.png",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/draco/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
       },
       {
         source: "/sw.js",

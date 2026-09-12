@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pharmpaper-cache-v1';
+const CACHE_NAME = 'pharmapaper-cache-v1';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',

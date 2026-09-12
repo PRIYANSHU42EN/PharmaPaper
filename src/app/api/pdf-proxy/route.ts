@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/ratelimit";
-import { auth } from "@clerk/nextjs/server";
-import { createClient } from "@supabase/supabase-js";
-import { checkUserPremiumStatus } from "@/lib/premium-server";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
  * PDF Proxy Route — STREAMING
- * Streams a remote PDF through the server to bypass CORS.
- * Passes Content-Length from upstream so the client can show download progress.
+ * Streams a remote PDF through the server to bypass CORS and ensure inline rendering.
+ * Passes Content-Length and Content-Type from upstream.
  */
 
 const ALLOWED_HOSTS = [
@@ -36,97 +29,20 @@ export async function GET(req: NextRequest) {
   const { blocked, headers } = await checkRateLimit("pdf", ip);
   if (blocked) {
     return NextResponse.json(
-      { error: "Too many PDF proxy requests. Try again in 1 minute." },
+      { error: "Too many requests. Please try again in a moment." },
       { status: 429, headers }
     );
   }
 
-  // 1. Verify User Authentication & Premium Status
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json(
-      { error: "Unauthorized: Please sign in to view documents." },
-      { status: 401 }
-    );
-  }
-
-  const idParam = req.nextUrl.searchParams.get("id");
-  let urlParam = req.nextUrl.searchParams.get("url");
-
-  if (idParam) {
-    // Validate UUID format
-    const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(idParam);
-    if (!isUuid) {
-      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
-    }
-    // Fetch file_url and title from study_materials using service_role supabase client
-    const { data: material, error: dbErr } = await supabase
-      .from("study_materials")
-      .select("file_url")
-      .eq("id", idParam)
-      .single();
-
-    if (dbErr || !material || !material.file_url) {
-      return NextResponse.json({ error: "Document not found or access denied" }, { status: 404 });
-    }
-    urlParam = material.file_url;
-  }
+  const urlParam = req.nextUrl.searchParams.get("url");
+  const isDownload = req.nextUrl.searchParams.get("download") === "true";
+  const filename = req.nextUrl.searchParams.get("filename") || "document.pdf";
 
   if (!urlParam) {
     return NextResponse.json(
-      { error: "Missing 'url' or 'id' query parameter" },
+      { error: "Missing 'url' query parameter" },
       { status: 400 }
     );
-  }
-
-  const premiumStatus = await checkUserPremiumStatus(userId);
-  const isPremium = premiumStatus.isPremium;
-
-  if (!isPremium) {
-    // Check daily unique PDF views limit for free users
-    const todayStart = new Date();
-    todayStart.setUTCHours(0, 0, 0, 0);
-
-    const { data: views, error: viewsError } = await supabase
-      .from("page_analytics")
-      .select("page")
-      .eq("user_id", userId)
-      .eq("event_type", "pdf_view")
-      .gte("created_at", todayStart.toISOString());
-
-    if (viewsError) {
-      console.error("Error querying daily PDF views:", viewsError.message);
-      return NextResponse.json({ error: "Database error querying usage limits" }, { status: 500 });
-    }
-
-    const uniqueUrls = new Set(views?.map(v => v.page).filter(Boolean) || []);
-    const isAlreadyViewed = uniqueUrls.has(urlParam);
-
-    if (!isAlreadyViewed && uniqueUrls.size >= 3) {
-      return NextResponse.json(
-        { error: "limit_reached", message: "You have reached your daily free limit of 3 PDFs. Please upgrade to Pro." },
-        { status: 403 }
-      );
-    }
-  }
-
-  // Handle preflight checks
-  const checkOnly = req.nextUrl.searchParams.get("check") === "true";
-  if (checkOnly) {
-    return NextResponse.json({ allowed: true });
-  }
-
-  // Log view event
-  const docTitle = req.nextUrl.searchParams.get("title") || "Study Material";
-  try {
-    await supabase.from("page_analytics").insert({
-      event_type: "pdf_view",
-      page: urlParam,
-      user_id: userId,
-      metadata: { title: docTitle }
-    });
-  } catch (err) {
-    console.error("Failed to log pdf_view event:", err);
   }
 
   let parsedUrl: URL;
@@ -171,14 +87,21 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Upstream fetch with 15s timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const upstream = await fetch(fetchUrl, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept": "application/pdf, */*",
       },
+      signal: controller.signal,
       redirect: "follow",
     });
+
+    clearTimeout(timeoutId);
 
     if (!upstream.ok) {
       return NextResponse.json(
@@ -187,19 +110,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Force reject non-PDF content type
-    const contentType = upstream.headers.get("content-type") || "";
-    if (!contentType.includes("application/pdf")) {
-      return NextResponse.json(
-        { error: "Only PDF files are allowed" },
-        { status: 400 }
-      );
-    }
+    const safeFilename = filename.replace(/[^a-zA-Z0-9_.-]/g, "_");
+    const disposition = isDownload
+      ? `attachment; filename="${safeFilename}"`
+      : `inline; filename="${safeFilename}"`;
 
     const responseHeaders: Record<string, string> = {
       "Content-Type": "application/pdf",
-      "Content-Disposition": "inline; filename=\"document.pdf\"",
-      "X-Content-Type-Options": "nosniff", // prevent MIME sniffing
+      "Content-Disposition": disposition,
+      "X-Content-Type-Options": "nosniff",
+      "Access-Control-Allow-Origin": "*",
       "Cache-Control": "public, max-age=3600, s-maxage=3600",
     };
 
@@ -214,6 +134,12 @@ export async function GET(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("[pdf-proxy] Fetch error:", err.message);
+    if (err.name === "AbortError") {
+      return NextResponse.json(
+        { error: "Upstream storage request timed out" },
+        { status: 504 }
+      );
+    }
     return NextResponse.json(
       { error: "Failed to fetch the PDF from the remote server" },
       { status: 502 }

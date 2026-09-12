@@ -1,287 +1,287 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import Link from "next/link";
+import { ChevronRight, ShieldCheck, Mail, Sparkles, ExternalLink, Send, MessageCircle } from "lucide-react";
 import type { LegalPageData } from "@/lib/legalContent";
-import { getSettings } from "@/lib/supabase";
+
+function YoutubeIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+    </svg>
+  );
+}
 
 interface LegalPageLayoutProps {
   data: LegalPageData;
 }
 
-// Animation presets
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.15,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-  },
-};
-
-const legalNav = [
-  { href: "/terms", label: "Terms" },
-  { href: "/privacy", label: "Privacy" },
-  { href: "/refund", label: "Refund" },
-  { href: "/contact", label: "Contact" },
-];
-
-export default function LegalPageLayout({ data }: LegalPageLayoutProps) {
-  const [siteName, setSiteName] = useState("PharmPaper");
-  const [siteEmail, setSiteEmail] = useState(data.contactBlock?.email || "admin@pharmapaper.com");
-
-  useEffect(() => {
-    getSettings().then((settings) => {
-      if (settings?.sitename) {
-        setSiteName(settings.sitename);
-      }
-      if (settings?.email) {
-        setSiteEmail(settings.email);
-      }
-    });
-  }, [data.contactBlock?.email]);
-
-  const renderLogo = (name: string) => {
-    if (name.toLowerCase() === "pharmpaper" || name.toLowerCase() === "pharma paper") {
-      return (
-        <>
-          PHARM
-          <span className="text-brand">PAPER</span>
-        </>
-      );
-    }
-    const parts = name.split(" ");
-    if (parts.length <= 1) {
-      return <span>{name.toUpperCase()}</span>;
-    }
-    return (
-      <>
-        {parts[0].toUpperCase()}
-        <span className="text-brand"> {parts.slice(1).join(" ").toUpperCase()}</span>
-      </>
-    );
-  };
+/**
+ * Inline text parser that handles **bold** tokens, emails, and live site URLs
+ */
+function FormattedInline({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
 
   return (
-    <div className="relative min-h-screen bg-brand-charcoal text-brand-cream selection:bg-brand selection:text-white">
-      {/* Top ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60vw] h-[40vh] ambient-brand-glow pointer-events-none opacity-40" />
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          const boldText = part.slice(2, -2);
+          return (
+            <strong key={i} className="font-bold text-slate-950">
+              {boldText}
+            </strong>
+          );
+        }
 
-      {/* ─── Floating Glass Header ─── */}
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl h-16 glass-panel border-brand-border rounded-full flex items-center justify-between px-8 z-50">
-        <Link href="/" className="flex items-center gap-2 group">
-          <span className="w-3 h-3 rounded-full bg-brand shadow-[0_0_10px_rgba(142,146,144,0.8)] group-hover:shadow-[0_0_18px_rgba(142,146,144,1)] transition-shadow animate-pulse" />
-          <span className="font-bebas text-2xl tracking-wider text-brand-cream font-bold">
-            {renderLogo(siteName)}
-          </span>
-        </Link>
+        // Split URLs or emails inside normal text
+        const subParts = part.split(/(https:\/\/pharmapaper\.dpdns\.org|pharmapaperofficial@zohomail\.in)/g);
+        if (subParts.length > 1) {
+          return subParts.map((sub, j) => {
+            if (sub === "https://pharmapaper.dpdns.org") {
+              return (
+                <Link
+                  key={j}
+                  href="/"
+                  className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
+                >
+                  {sub}
+                </Link>
+              );
+            }
+            if (sub === "pharmapaperofficial@zohomail.in") {
+              return (
+                <a
+                  key={j}
+                  href={`mailto:${sub}`}
+                  className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
+                >
+                  {sub}
+                </a>
+              );
+            }
+            return <span key={j}>{sub}</span>;
+          });
+        }
 
-        <nav className="hidden md:flex items-center gap-6 text-[11px] font-semibold tracking-wider uppercase text-brand-cream/50">
-          {legalNav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="hover:text-brand transition-colors duration-200"
-            >
-              {item.label}
-            </Link>
-          ))}
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
+export default function LegalPageLayout({ data }: LegalPageLayoutProps) {
+  return (
+    <div className="py-8 sm:py-12 bg-[#F9FAFB] min-h-screen text-slate-900">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Breadcrumb Navigation */}
+        <nav className="flex items-center gap-2 text-xs font-semibold text-slate-500 flex-wrap" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-blue-600 transition-colors">
+            Home
+          </Link>
+          <ChevronRight className="w-3 h-3 text-slate-400" />
+          <span className="text-blue-600 font-bold">{data.title}</span>
         </nav>
 
-        <Link
-          href="/"
-          className="px-5 py-2 rounded-full glass-panel border border-brand-border hover:border-brand text-brand-cream/80 hover:text-brand-cream font-semibold text-[11px] tracking-wider uppercase transition-all duration-300 transform hover:scale-105 active:scale-95"
-        >
-          ← Home
-        </Link>
-      </header>
-
-      {/* ─── Main Content ─── */}
-      <main className="relative z-10 max-w-4xl mx-auto px-6 pt-36 pb-24">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Page Title */}
-          <motion.div variants={itemVariants} className="mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel border-brand-border text-brand text-[10px] uppercase font-bold tracking-widest mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand animate-ping" />
-              Legal
+        <div className="space-y-8">
+          {/* Header Card */}
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-4 transition-all">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
+              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+              <span>Official Information & Guidelines</span>
             </div>
-            <h1 className="font-bebas text-5xl md:text-7xl text-brand-cream uppercase tracking-tight leading-[0.95] mb-4">
-              {data.title.split(" ").map((word, i) => (
-                <span key={i}>
-                  {i === data.title.split(" ").length - 1 ? (
-                    <span className="text-brand">{word}</span>
-                  ) : (
-                    word
-                  )}{" "}
-                </span>
-              ))}
+            
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-display font-extrabold text-slate-950 tracking-tight leading-tight">
+              {data.title}
             </h1>
-            <p className="text-brand-cream/30 text-xs tracking-widest uppercase font-mono">
-              Last Updated: {data.lastUpdated}
-            </p>
-          </motion.div>
 
-          {/* Intro paragraph */}
-          {data.intro && (
-            <motion.div
-              variants={itemVariants}
-              className="glass-panel rounded-2xl p-6 md:p-8 border border-brand-border mb-10"
-            >
-              <p className="text-brand-cream/70 text-sm md:text-base leading-relaxed">
-                {data.intro}
-              </p>
-            </motion.div>
-          )}
+            <div className="flex items-center gap-4 text-xs font-mono text-slate-500 pt-1">
+              <span>Last Updated: {data.lastUpdated}</span>
+              <span>•</span>
+              <span className="flex items-center gap-1 text-emerald-700 font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                PharmaPaper Verified
+              </span>
+            </div>
 
-          {/* Sections */}
-          {data.sections.map((section, idx) => (
-            <motion.section
-              key={idx}
-              variants={itemVariants}
-              className="mb-8"
-            >
-              {/* Section heading with left accent bar */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-1 h-6 rounded-full bg-brand" />
-                <h2 className="font-bebas text-2xl md:text-3xl text-brand-cream uppercase tracking-wide">
-                  {section.heading}
-                </h2>
+            {data.intro && (
+              <div className="text-slate-600 text-sm sm:text-base leading-relaxed pt-2 border-t border-slate-100">
+                <FormattedInline text={data.intro} />
               </div>
+            )}
+          </div>
 
-              {/* Section content */}
-              <div className="pl-5 border-l border-brand-border/30 ml-[2px]">
-                {section.content.map((line, lineIdx) => {
-                  const isBullet = line.startsWith("• ");
-                  const isCheckItem = line.startsWith("• ✅");
-                  return (
-                    <div
-                      key={lineIdx}
-                      className={`${
-                        isBullet
-                          ? "flex items-start gap-2.5 mb-2"
-                          : "mb-3"
-                      }`}
-                    >
-                      {isBullet ? (
-                        <>
-                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-brand/60 shrink-0" />
-                          <p className="text-brand-cream/60 text-sm leading-relaxed">
-                            {isCheckItem
-                              ? line.replace("• ✅ ", "")
-                              : line.replace("• ", "")}
-                            {isCheckItem && (
-                              <span className="ml-1 text-green-400/60">✓</span>
-                            )}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-brand-cream/60 text-sm leading-relaxed">
-                          {line}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </motion.section>
-          ))}
-
-          {/* Contact block */}
-          {data.contactBlock && (
-            <motion.div
-              variants={itemVariants}
-              className="glass-panel rounded-2xl p-6 md:p-8 border border-brand/20 mt-12"
-            >
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-brand-subtle border border-brand/25 flex items-center justify-center text-brand text-lg">
-                  📧
-                </div>
-                <h3 className="font-bebas text-2xl text-brand-cream uppercase tracking-wide">
-                  Get In Touch
-                </h3>
-              </div>
-              <div className="space-y-2 text-sm">
-                <p className="text-brand-cream/70">
-                  <span className="text-brand-cream/40 uppercase tracking-wider text-[10px] font-semibold mr-2">
-                    Email
-                  </span>
-                  <a
-                    href={`mailto:${siteEmail}`}
-                    className="text-brand hover:text-brand-dark transition-colors underline underline-offset-4"
-                  >
-                    {siteEmail}
-                  </a>
-                </p>
-                <p className="text-brand-cream/70">
-                  <span className="text-brand-cream/40 uppercase tracking-wider text-[10px] font-semibold mr-2">
-                    Location
-                  </span>
-                  {data.contactBlock.city}
-                </p>
-                {data.contactBlock.web && (
-                  <p className="text-brand-cream/70">
-                    <span className="text-brand-cream/40 uppercase tracking-wider text-[10px] font-semibold mr-2">
-                      Web
-                    </span>
-                    <a
-                      href={`https://${data.contactBlock.web}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-brand hover:text-brand-dark transition-colors underline underline-offset-4"
-                    >
-                      {data.contactBlock.web}
-                    </a>
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
-      </main>
-
-      {/* ─── Legal Cross-Nav Footer ─── */}
-      <footer className="relative z-10 border-t border-brand-border/30">
-        <div className="max-w-4xl mx-auto px-6 py-10">
-          {/* Quick links grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-            {legalNav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="glass-panel glass-panel-hover rounded-xl p-4 text-center border border-brand-border text-brand-cream/60 hover:text-brand text-xs font-semibold tracking-wider uppercase transition-all duration-300"
+          {/* Policy / Info Sections */}
+          <div className="space-y-6">
+            {data.sections.map((section, idx) => (
+              <section
+                key={idx}
+                className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4 hover:border-slate-300 transition-colors"
               >
-                {item.label}
-              </Link>
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                  <div className="w-2 h-6 rounded-full bg-gradient-to-b from-[#FBC02D] to-amber-500" />
+                  <h2 className="text-xl sm:text-2xl font-display font-bold text-slate-900">
+                    {section.heading}
+                  </h2>
+                </div>
+
+                <div className="space-y-3 text-slate-700 text-sm sm:text-base leading-relaxed pl-1 sm:pl-2">
+                  {section.content.map((line, lineIdx) => {
+                    const isBullet = line.startsWith("• ") || line.startsWith("- ");
+                    const isCheckItem = line.startsWith("• ✅");
+
+                    if (isBullet) {
+                      const cleanLine = isCheckItem
+                        ? line.replace("• ✅ ", "")
+                        : line.replace(/^[•-]\s+/, "");
+
+                      return (
+                        <div key={lineIdx} className="flex items-start gap-3 py-0.5">
+                          <span className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
+                            isCheckItem ? "bg-emerald-500" : "bg-blue-600"
+                          }`} />
+                          <div className="text-slate-700 text-sm leading-relaxed">
+                            <FormattedInline text={cleanLine} />
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <p key={lineIdx} className="text-slate-600 text-sm leading-relaxed">
+                        <FormattedInline text={line} />
+                      </p>
+                    );
+                  })}
+                </div>
+              </section>
             ))}
           </div>
 
-          {/* Copyright */}
-          <div className="text-center space-y-2">
-            <p className="text-[10px] text-brand-cream/30 uppercase tracking-widest">
-              © 2026 {siteName} | pharmapaper.com
-            </p>
-            <p className="text-[10px] text-brand-cream/20 uppercase tracking-widest">
-              Owner: Priyansh Nayak & Aayan Verma
-            </p>
+          {/* Contact Block & Quick Channels */}
+          {data.contactBlock && (
+            <div className="bg-gradient-to-br from-blue-50/80 to-amber-50/50 rounded-3xl p-6 sm:p-8 border border-blue-200/60 space-y-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-sm">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 font-display">
+                      Need Assistance or Have Feedback?
+                    </h3>
+                    <p className="text-xs text-slate-600">
+                      Our team typically replies to students and educators within 24–48 hours
+                    </p>
+                  </div>
+                </div>
+
+                {/* Direct Action Link */}
+                <a
+                  href={`mailto:${data.contactBlock.email}`}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium text-xs rounded-xl hover:opacity-95 transition-opacity shadow-sm self-start sm:self-auto"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>Send Email</span>
+                </a>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-blue-100/80 text-xs sm:text-sm">
+                <div>
+                  <span className="text-slate-400 block font-mono text-[10px] uppercase font-bold">
+                    Official Email
+                  </span>
+                  <a
+                    href={`mailto:${data.contactBlock.email}`}
+                    className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 break-all"
+                  >
+                    {data.contactBlock.email}
+                  </a>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 block font-mono text-[10px] uppercase font-bold">
+                    Jurisdiction / Region
+                  </span>
+                  <span className="text-slate-700 font-medium">
+                    {data.contactBlock.city} (PCI Curriculum)
+                  </span>
+                </div>
+
+                {data.contactBlock.web && (
+                  <div>
+                    <span className="text-slate-400 block font-mono text-[10px] uppercase font-bold">
+                      Live Portal
+                    </span>
+                    <a
+                      href={`https://${data.contactBlock.web}`}
+                      className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 inline-flex items-center gap-1"
+                    >
+                      <span>https://{data.contactBlock.web}</span>
+                      <ExternalLink className="w-3 h-3 opacity-60" />
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Community Connect Bar */}
+              <div className="pt-3 border-t border-blue-100/60 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <span className="text-slate-500 font-medium">Connect on Student Channels:</span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://t.me/pharmapaper"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#229ED9]/10 text-[#229ED9] hover:bg-[#229ED9]/20 font-semibold transition-colors"
+                  >
+                    <Send className="w-3 h-3" />
+                    <span>Telegram</span>
+                  </a>
+                  <a
+                    href="https://whatsapp.com/channel/pharmapaper"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-semibold transition-colors"
+                  >
+                    <MessageCircle className="w-3 h-3" />
+                    <span>WhatsApp</span>
+                  </a>
+                  <a
+                    href="https://youtube.com/@pharmapaper"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-200 font-semibold transition-colors"
+                  >
+                    <YoutubeIcon className="w-3 h-3" />
+                    <span>YouTube</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Legal Cross-Links */}
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs font-semibold text-slate-500">
+            <Link href="/about" className="hover:text-blue-600 transition-colors">
+              About Us
+            </Link>
+            <span>•</span>
+            <Link href="/contact" className="hover:text-blue-600 transition-colors">
+              Contact Us
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:text-blue-600 transition-colors">
+              Privacy Policy
+            </Link>
+            <span>•</span>
+            <Link href="/terms" className="hover:text-blue-600 transition-colors">
+              Terms and Conditions
+            </Link>
+            <span>•</span>
+            <Link href="/disclaimer" className="hover:text-blue-600 transition-colors">
+              Disclaimer
+            </Link>
           </div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }
